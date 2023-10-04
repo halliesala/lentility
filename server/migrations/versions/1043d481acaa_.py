@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 580c87cc0681
+Revision ID: 1043d481acaa
 Revises: 
-Create Date: 2023-10-04 11:07:27.586511
+Create Date: 2023-10-04 16:52:09.308938
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '580c87cc0681'
+revision = '1043d481acaa'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -70,6 +70,8 @@ def upgrade_():
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('description', sa.String(), nullable=True),
     sa.Column('image_link', sa.String(), nullable=True),
+    sa.Column('quantity', sa.Integer(), nullable=True),
+    sa.Column('price_preset', sa.Float(), nullable=True),
     sa.ForeignKeyConstraint(['manufacturer_id'], ['manufacturers.id'], name=op.f('fk_canonical_products_manufacturer_id_manufacturers')),
     sa.PrimaryKeyConstraint('id')
     )
@@ -191,6 +193,7 @@ def upgrade_heartysoupsinternational():
     sa.Column('manufacturer_sku', sa.String(), nullable=False),
     sa.Column('stock', sa.Integer(), nullable=False),
     sa.Column('image_link', sa.String(), nullable=True),
+    sa.Column('price_preset', sa.Float(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('users',
@@ -229,6 +232,7 @@ def upgrade_planterson():
     sa.Column('manufacturer_sku', sa.String(), nullable=False),
     sa.Column('stock', sa.Integer(), nullable=False),
     sa.Column('image_link', sa.String(), nullable=True),
+    sa.Column('price_preset', sa.Float(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('users',
@@ -267,6 +271,7 @@ def upgrade_lentsplysproutona():
     sa.Column('manufacturer_sku', sa.String(), nullable=False),
     sa.Column('stock', sa.Integer(), nullable=False),
     sa.Column('image_link', sa.String(), nullable=True),
+    sa.Column('price_preset', sa.Float(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('users',
@@ -305,6 +310,7 @@ def upgrade_housebrand1():
     sa.Column('manufacturer_sku', sa.String(), nullable=False),
     sa.Column('stock', sa.Integer(), nullable=False),
     sa.Column('image_link', sa.String(), nullable=True),
+    sa.Column('price_preset', sa.Float(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('users',
@@ -343,6 +349,7 @@ def upgrade_housebrand2():
     sa.Column('manufacturer_sku', sa.String(), nullable=False),
     sa.Column('stock', sa.Integer(), nullable=False),
     sa.Column('image_link', sa.String(), nullable=True),
+    sa.Column('price_preset', sa.Float(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('users',
