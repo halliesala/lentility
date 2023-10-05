@@ -78,7 +78,8 @@ class Supplier(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, unique=True)
-    website = db.Column(db.String, nullable=False, unique=True)
+    house_brand = db.Column(db.String, nullable=False)
+    preferred = db.Column(db.Boolean, nullable=False)
 
     # # Relationships
     # products = db.relationship('Product', backref='supplier')
@@ -127,10 +128,9 @@ class Address(db.Model, SerializerMixin):
     line_1 = db.Column(db.String, nullable=False)
     line_2 = db.Column(db.String)
     city = db.Column(db.String, nullable=False)
-    state = db.Column(db.String, nullable=False)
+    us_state = db.Column(db.String, nullable=False)
     zip_code = db.Column(db.String, nullable=False)
     is_primary_shipping = db.Column(db.Boolean, nullable=False)
-    is_primary_billing = db.Column(db.Boolean, nullable=False)
 
     # # Relationships #
     # practice = db.relationship('Practice', backref='addresses')
@@ -145,12 +145,7 @@ class Address(db.Model, SerializerMixin):
     #         assert not Address.query.filter_by(practice_id=self.practice_id, is_primary_shipping=True).first()
     #     return is_primary_shipping
     
-    # # Only one primary billing address is allowed for each practice #
-    # @validates('is_primary_billing')
-    # def validate_is_primary_billing(self, key, is_primary_billing):
-    #     if is_primary_billing:
-    #         assert not Address.query.filter_by(practice_id=self.practice_id, is_primary_billing=True).first()
-    #     return is_primary_billing
+    
 
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
@@ -243,6 +238,7 @@ class PaymentMethod(db.Model, SerializerMixin):
     practice_id = db.Column(db.Integer, db.ForeignKey('practices.id'))
     billing_address_id = db.Column(db.Integer, db.ForeignKey('addresses.id'))
     nickname = db.Column(db.String)
+    is_primary = db.Column(db.Boolean)
 
     # # Relationships #
     # orders = db.relationship('Order', backref='payment_method')
@@ -259,6 +255,8 @@ class VendorUser(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, nullable=False)
     password = db.Column(db.String, nullable=False)
+    # Practice-specific discount or markup of up to 20%
+    price_multiplier = db.Column(db.Float, nullable=False)
     days_to_ship = db.Column(db.Integer, nullable=False)
 
 class VendorProduct(db.Model, SerializerMixin):
@@ -274,18 +272,10 @@ class VendorProduct(db.Model, SerializerMixin):
     # This is the core price; vendors will also randomly vary prices by practice
     price_preset = db.Column(db.Float, nullable=False)
 
-class VendorPrices(db.Model, SerializerMixin):
-    __abstract__ = True
-    __tablename__ = 'prices'
-
-    id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    price = db.Column(db.Float, nullable=False)
 
 # Dynamically create the tables for each vendor
-VENDORS = ['heartysoupsinternational', 'planterson', 'lentsplysproutona', 'housebrand1', 'housebrand2']
-TABLES_AND_CLASSES = [('user', VendorUser), ('product', VendorProduct), ('price', VendorPrices)]
+VENDORS = ['heartysoupsinternational', 'planterson', 'lentsplysproutona', 'lentilcity', 'dclentil']
+TABLES_AND_CLASSES = [('user', VendorUser), ('product', VendorProduct)]
 vendor_classes = {}
 for v in VENDORS:
     for (t, c) in TABLES_AND_CLASSES:

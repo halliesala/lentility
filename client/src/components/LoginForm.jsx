@@ -1,0 +1,61 @@
+import { useState } from 'react';
+import { Form, Input } from 'semantic-ui-react';
+
+export default function Login({ setLoginError }) {
+    const BLANK_FORM_DATA = {
+        email: "",
+        password: "",
+    }
+    const [formData, setFormData] = useState(BLANK_FORM_DATA);
+
+    function handleChange(e) {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    }
+
+    function handleSubmit(e) {
+        console.log("Form Submitted")
+        e.preventDefault()
+        console.log(formData)
+        const POST_OPTIONS = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        }
+        fetch('/api/v1/login', POST_OPTIONS)
+        .then(res => {
+            console.log(res.status, res.ok)
+            if (res.ok) {
+                setFormData(BLANK_FORM_DATA)
+                setLoginError(false)
+            } else {
+                setLoginError(true)
+            }
+            return res.json()
+        })
+        .then(data => {
+            console.log(data)
+        })
+        .catch(err => console.log("Error: ", err))
+    }
+
+    return (
+        <>
+            <Form  onSubmit={handleSubmit}>
+                <Form.Field>
+                    <label>Email</label>
+                    <Input type='text' name='email' onChange={handleChange} value={formData.email} />
+                </Form.Field>
+                <Form.Field>
+                    <label>Password</label>
+                    <Input type='password' name='password' onChange={handleChange} value={formData.password} />
+                </Form.Field>
+                <input type='submit' value='Login'/>
+            </Form>
+        </>
+    )
+}
