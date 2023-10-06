@@ -109,6 +109,8 @@ class SupplierAccount(db.Model, SerializerMixin):
 class Practice(db.Model, SerializerMixin):
     __tablename__ = 'practices'
 
+    serialize_rules = ('-users.practice',)
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, unique=True)
     created_time = db.Column(db.DateTime, nullable=False)
@@ -116,7 +118,7 @@ class Practice(db.Model, SerializerMixin):
     # # Relationships #
     # supplier_accounts = db.relationship('SupplierAccount', backref='practice')
     # suppliers = association_proxy('supplier_accounts', 'supplier')
-    # users = db.relationship('User', backref='practice')
+    users = db.relationship('User', back_populates='practice')
     # addresses = db.relationship('Address', backref='practice')
     # orders = db.relationship('Order', backref='practice')
 
@@ -150,6 +152,8 @@ class Address(db.Model, SerializerMixin):
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
+    serialize_rules = ('-practice.users',)
+
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String, nullable=False, unique=True)
     password = db.Column(db.String)
@@ -160,7 +164,7 @@ class User(db.Model, SerializerMixin):
     is_primary = db.Column(db.Boolean, nullable=False)
 
     # # Relationships #
-    # practice = db.relationship('Practice', backref='users')
+    practice = db.relationship('Practice', back_populates='users')
     # orders = db.relationship('Order', backref='placed_by_user')
 
     # # Validations #

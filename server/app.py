@@ -5,7 +5,7 @@ from flask_restful import Api, Resource
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from models import db, User, Product, CanonicalProduct
+from models import db, User, Product, CanonicalProduct, Order, Practice
 
 # ----- ENVIRONMENT VARIABLES ----- #
 load_dotenv()
@@ -107,6 +107,19 @@ class CanonicalProducts(Resource):
         canonical_products = CanonicalProduct.query.all()
         return [cp.to_dict() for cp in canonical_products], 200
 api.add_resource(CanonicalProducts, '/canonical_products')
+
+class PracticeOrders(Resource):
+    def get(self, practice_id):
+        orders = Order.query.filter_by(practice_id=practice_id).all()
+        return [o.to_dict() for o in orders], 200
+api.add_resource(PracticeOrders, '/practice=<int:practice_id>/orders')
+
+class Practices(Resource):
+    def get(self, id):
+        practice = Practice.query.filter_by(id=id).first()
+        return practice.to_dict(), 200
+api.add_resource(Practices, '/practice=<int:id>')
+
 
 # Server will run on port 5555
 if __name__ == "__main__":

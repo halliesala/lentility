@@ -1,6 +1,8 @@
 import './App.css'
-import LoginPage from './components/LoginPage'
+import { Outlet } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import LentilityBanner from './components/LentilityBanner';
+import 'semantic-ui-css/semantic.min.css';
 
 function App() {
 
@@ -24,7 +26,8 @@ function App() {
 
   return (
     <>
-      <LoginPage user={user} setUser={setUser} />
+      <LentilityBanner user={user} setUser={setUser} />
+      <Outlet context={{user, setUser}}/>
     </>
   )
 }
