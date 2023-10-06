@@ -11,15 +11,15 @@ function App() {
     fetch("api/v1/checksession")
     .then(resp => {
       if (resp.ok) {
-        return resp.json()
+        return resp.json().then(data => {
+          console.log("Session found. Logged in as: ", data.user.email)
+          setUser(data.user)
+        })
       } else {
         return null
       }
     })
-    .then(data => {
-      console.log("CHECK SESSION DATA: ", data)
-      setUser(data['user'])
-    })
+    
   }, [])
 
   return (

@@ -20,7 +20,7 @@ export default function LoginPage({ user, setUser }) {
     }
 
     function handleLogout() {
-        fetch('/api/v1/logout')
+        fetch('/api/v1/logout', {'method': 'DELETE'})
         .then(resp => {
             if (resp.ok) {
                 setUser(null)

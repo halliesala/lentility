@@ -89,9 +89,9 @@ class Login(Resource):
 api.add_resource(Login, '/login')
 
 class Logout(Resource):
-    def get(self):
-        session['user_id'] = None
-        return {'message': 'User logged out'}, 200
+    def delete(self):
+        session.clear()
+        return {'message': 'Session cleared'}, 200
 api.add_resource(Logout, '/logout')
 
 
