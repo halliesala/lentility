@@ -5,7 +5,7 @@ from flask_restful import Api, Resource
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from models import db, User
+from models import db, User, Product, CanonicalProduct
 
 # ----- ENVIRONMENT VARIABLES ----- #
 load_dotenv()
@@ -62,9 +62,6 @@ class Home(Resource):
 api.add_resource(Home, '/')
 
 # ----- AUTHORIZATION ----- #
-
-# curl requests for testing:
-# curl -i -X POST -H "Content-Type: application/json" -d '{"email":"ppadilla","password":"password"}' http://localhost:5555/api/v1/chec
 class CheckSession(Resource):
     def get(self):
         print("Checking session...")
@@ -97,6 +94,19 @@ class Logout(Resource):
         return {'message': 'User logged out'}, 200
 api.add_resource(Logout, '/logout')
 
+
+# ----- SHOP ---- #
+class Products(Resource):
+    def get(self):
+        products = Product.query.all()
+        return [p.to_dict() for p in products], 200
+api.add_resource(Products, '/products')
+
+class CanonicalProducts(Resource):
+    def get(self):
+        canonical_products = CanonicalProduct.query.all()
+        return [cp.to_dict() for cp in canonical_products], 200
+api.add_resource(CanonicalProducts, '/canonical_products')
 
 # Server will run on port 5555
 if __name__ == "__main__":

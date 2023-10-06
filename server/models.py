@@ -196,6 +196,8 @@ class Order(db.Model, SerializerMixin):
     # order_items = db.relationship('OrderItem', backref='order')
     # vendor_orders = db.relationship('VendorOrders', backref='order')
 
+    # Validations #
+    # Status can be 'in_cart', 'placed', 'delivered'
 class OrderItem(db.Model, SerializerMixin):
     __tablename__ = 'order_items'
 
@@ -215,7 +217,7 @@ class OrderItem(db.Model, SerializerMixin):
     # canonical_product = db.relationship('CanonicalProduct', foreign_keys=[canonical_product_id], post_update=True)
     # vendor_order = db.relationship('VendorOrders', backref='order_items')
 
-class VendorOrders(db.Model, SerializerMixin):
+class VendorOrder(db.Model, SerializerMixin):
     __tablename__ = 'vendor_orders'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -265,6 +267,7 @@ class VendorProduct(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
+    sku = db.Column(db.String, nullable=False)
     manufacturer_name = db.Column(db.String, nullable=False)
     manufacturer_sku = db.Column(db.String, nullable=False)
     stock = db.Column(db.Integer, nullable=False)
