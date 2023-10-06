@@ -1,13 +1,12 @@
 from app import app, bcrypt
 import models as m
 from faker import Faker
-from random import randint, choice
-from datetime import datetime
+from random import randint, choice, sample
+from datetime import datetime, timedelta
 from sqlalchemy import func
 
 fake = Faker()
 
-# ----- PRODUCT ATTRIBUTES ----- #
 LENTIL_TYPES = ['Red Lentils', 'Green Lentils', 'Brown Lentils', 'Black Lentils', 'Pidgeon Peas', 'Chickpeas', 'Green Split Peas', 'Yellow Split Peas']
 QUANTITIES_LB = [1, 10, 100]
 MANUFACTURERS = ['Lentilmania', "Barb's Best Beans", "The Puy Tool", "lTero", "Planterson", "Hearty Soups International", "Lentsply Sproutona", "House Brand"]
@@ -20,12 +19,20 @@ HOUSE_BRAND_MANUFACTURERS = {
                 'dclentil': 'House Brand',
             }
 ORDER_STATUSES = ['in_cart', 'placed', 'delivered']
+DOTS = '...'
+
 
 class SeedDB:
 
     # MAIN DB #
 
     # -- NO DEPENDENCIES -- #
+    @classmethod
+    def clear_db(cls):
+        for table in reversed(m.db.metadata.sorted_tables):
+            m.db.session.execute(table.delete())
+        m.db.session.commit()
+
     @classmethod
     def seed_manufacturers(cls):
         m.Manufacturer.query.delete()
@@ -42,7 +49,7 @@ class SeedDB:
         for i in range(10):
             p = m.Practice(
                 name = fake.company(),
-                created_time = fake.date_time_between(start_date='-1y', end_date='now'),
+                created_time = fake.date_time_between(start_date='-2y', end_date='-3m'),
             )
             m.db.session.add(p)
         m.db.session.commit()
@@ -70,7 +77,7 @@ class SeedDB:
         print("Seeding canonical products...")
         # Helper functions for generating products #
         def sku(manufacturer):
-            return manufacturer[:3].upper() + ''.join([str(randint(0,9)) for i in range(7)])
+            return manufacturer[:3].upper() + ''.join([str(randint(0,9)) for i in range(12)])
         def product_name(lentil_type, quantity, manufacturer):
             return f"{lentil_type} - {quantity} lb"
         def description(lentil_type, quantity, manufacturer):
@@ -117,7 +124,7 @@ class SeedDB:
                     name = vp.name,
                     canonical_product_id = canonical_product.id,
                     supplier_id = supplier.id,
-                    supplier_sku = vp.id,
+                    supplier_sku = vp.sku,
                     image_link = None,
                 )
                 m.db.session.add(p)
@@ -295,15 +302,90 @@ class SeedDB:
         m.db.session.commit()
         print("Done.")
     
-    # -- DEPENDENCIES: orders, suppliers, (vendor_users.days_to_ship) -- #
+    # -- DEPENDENCIES: practices, orders, suppliers, (vendor_users.days_to_ship) -- #
     @classmethod
     def seed_vendor_orders(cls):
-        pass
+        m.VendorOrder.query.delete()
+        print("Seeding vendor orders...")
+        practices = m.Practice.query.all()
+        for p in practices:
+            orders = m.Order.query.filter_by(practice_id=p.id).all()
+            supplier_accounts = m.SupplierAccount.query.filter_by(practice_id=p.id).all()
+            connected_suppliers = m.Supplier.query.filter(m.Supplier.id.in_([sa.supplier_id for sa in supplier_accounts])).all()
+            for o in orders:
+                # Pick 1-3 suppliers and create vendor orders
+                order_suppliers = sample(connected_suppliers, randint(0, len(connected_suppliers)))
+                for s in order_suppliers:
+                    # Get practice's supplier account for this supplier
+                    supplier_account = m.SupplierAccount.query.filter_by(practice_id=p.id, supplier_id=s.id).first()
+                    # Get [Vendor]User record for this supplier_account
+                    vendor_user_class_name = f"{s.name.lower().replace(' ', '').capitalize()}User"
+                    vendor_user_class = getattr(m, vendor_user_class_name)
+                    # Get days to ship
+                    vendor_user_record = vendor_user_class.query.filter_by(username=supplier_account.username, password=supplier_account.password).first()
+                    days_to_ship = vendor_user_record.days_to_ship
+                    vo = m.VendorOrder(
+                        order_id = o.id,
+                        supplier_id = s.id,
+                        # Update this 
+                        shipping_and_handling = 9.99,
+                        tax = 0.00,
+                        tracking_number = fake.bothify(text='Z##?###??#?#?#####?##?'),
+                        # Update this to be placed_time + vendor_user.days_to_ship
+                        estimated_delivery_date = o.placed_time + timedelta(days=days_to_ship),
+                    )
+                    m.db.session.add(vo)
+        m.db.session.commit()
+        print("Done.")
 
     # -- DEPENDENCIES: orders, vendor_orders, products, canonical_products
     @classmethod
     def seed_order_items(cls):
-        pass
+        m.OrderItem.query.delete()
+        print("Seeding order items...")
+        all_cps = m.CanonicalProduct.query.all()
+        practices = m.Practice.query.all()
+        for (i, p) in enumerate(practices):
+            print(f"{DOTS*1}Seeding order items for practice {i+1}/{len(practices)} ({p.name.upper()})...")
+            # For each vendor order, created 1-5 order items
+            # No canonical product should be in more than one vendor order
+            orders = m.Order.query.filter_by(practice_id=p.id).all()
+            for o in orders:
+                vendor_orders = m.VendorOrder.query.filter_by(order_id=o.id).all()
+                canonical_products = []
+                for vo in vendor_orders:
+                    # Get the vendor user price multiplier
+                    # -- vendor_orders.supplier_id -> suppliers.name -> [Suppliername]User table
+                    # -- practices.id + suppliers.id -> supplier_accounts.username, password -> [Suppliername]User record -> price_multiplier
+                    supplier = m.Supplier.query.filter_by(id=vo.supplier_id).first()
+                    vendor_user_class_name = f"{supplier.name.lower().replace(' ', '').capitalize()}User"
+                    vendor_user_class = getattr(m, vendor_user_class_name)
+                    practice_supplier_account = m.SupplierAccount.query.filter_by(practice_id=p.id, supplier_id=vo.supplier_id).first()
+                    vendor_user_record = vendor_user_class.query.filter_by(username=practice_supplier_account.username, password=practice_supplier_account.password).first()
+                    price_multiplier = vendor_user_record.price_multiplier
+                    # Get all products from this supplier that haven't previously been added to another vendor order for this order
+                    vendor_products = m.Product.query.filter(m.Product.supplier_id==vo.supplier_id, ~m.Product.canonical_product_id.in_(canonical_products)).all()
+                    sample_products = sample(vendor_products, randint(1, 5))
+                    canonical_products += [sp.canonical_product_id for sp in sample_products]
+                    for sp in sample_products:
+                        # Get the item price preset
+                        vendor_product_class_name = f"{supplier.name.lower().replace(' ', '').capitalize()}Product"
+                        vendor_product_class = getattr(m, vendor_product_class_name)
+                        vendor_product = vendor_product_class.query.filter_by(sku=sp.supplier_sku).first()
+                        price_preset = vendor_product.price_preset
+                        # Create the order item
+                        oi = m.OrderItem(
+                            order_id = o.id,
+                            fulfilled_by_product_id = sp.id,
+                            created_time = o.placed_time,
+                            canonical_product_id = sp.canonical_product_id,
+                            quantity = randint(1, 9),
+                            price = price_preset * price_multiplier,  
+                            vendor_order_id = vo.id,
+                        )
+                        m.db.session.add(oi)
+        m.db.session.commit()
+        print("Done.")
 
 
     # VENDOR DBs #
@@ -326,13 +408,13 @@ class SeedDB:
             # Clear products table for vendor #
             m.vendor_classes[v.capitalize() + 'Product'].query.delete()
 
-            print(f"Seeding products for {v}...")
+            print(f"{DOTS*1}Seeding products for {v}...")
             
             house_brand_manufacturer = m.Manufacturer.query.filter_by(name=HOUSE_BRAND_MANUFACTURERS[v]).first()
             house_brand_products = m.CanonicalProduct.query.filter_by(manufacturer_id=house_brand_manufacturer.id).all()
             other_products = [p for p in name_brand_products if choice([True, False])]
 
-            print(f"Adding {len(house_brand_products)} house brand and {len(other_products)} other products...")
+            print(f"{DOTS*2}Adding {len(house_brand_products)} house brand and {len(other_products)} other products...")
             
             for cp in house_brand_products + other_products:
                 class_name = f"{v.capitalize()}Product"
@@ -352,29 +434,50 @@ class SeedDB:
                 m.db.session.add(vp)
 
             m.db.session.commit()
-            print(f"Done seeding {v}.")
         print("Done seeding vendor products.")
 
     @classmethod
-    def seed_vendor_users
+    def seed_vendor_users(cls):
+        # Clear vendor_users tables
+        for v in m.VENDORS:
+            m.vendor_classes[v.capitalize() + 'User'].query.delete()
+        # For each supplier_account, create a corresponding vendor_user
+        print("Seeding vendor users...")
+        supplier_accounts = m.SupplierAccount.query.all()
+        for sa in supplier_accounts:
+            # Find the right VendorUser class
+            supplier = m.Supplier.query.filter_by(id=sa.supplier_id).first()
+            supplier_name = supplier.name.lower().replace(' ', '')
+            vendor_user_class_name = f"{supplier_name.capitalize()}User"
+            vendor_user_class = getattr(m, vendor_user_class_name)
+            vu = vendor_user_class(
+                username = sa.username,
+                password = sa.password,
+                price_multiplier = randint(80, 120) * 0.01 if not supplier.preferred else 1.00,
+                days_to_ship = randint(1, 5),
+            )
+            m.db.session.add(vu)
+        m.db.session.commit()
+        print("Done.")
+
+
 
 if __name__ == '__main__':
     with app.app_context():
-        # SeedDB.seed_manufacturers()
-        # SeedDB.seed_practices()
-        # SeedDB.seed_users()
-        # SeedDB.seed_canonical_products()
-        # SeedDB.seed_vendor_products()
-        # SeedDB.seed_addresses()
-        # SeedDB.seed_payment_methods()
-        # SeedDB.seed_suppliers()
-        # SeedDB.seed_products()
-        # SeedDB.seed_supplier_accounts()
+        SeedDB.clear_db()
+        SeedDB.seed_manufacturers()
+        SeedDB.seed_practices()
+        SeedDB.seed_users()
+        SeedDB.seed_canonical_products()
+        SeedDB.seed_vendor_products()
+        SeedDB.seed_addresses()
+        SeedDB.seed_payment_methods()
+        SeedDB.seed_suppliers()
+        SeedDB.seed_products()
+        SeedDB.seed_supplier_accounts()
         SeedDB.seed_orders()
+        SeedDB.seed_vendor_users()
+        SeedDB.seed_vendor_orders()
+        SeedDB.seed_order_items()
         # import ipdb; ipdb.set_trace()
 
-
-# TODO:
-# -- OrderItem
-# -- VendorOrder
-# -- VendorUser

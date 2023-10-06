@@ -209,7 +209,6 @@ class OrderItem(db.Model, SerializerMixin):
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Float, nullable=False)
     vendor_order_id = db.Column(db.Integer, db.ForeignKey('vendor_orders.id'))
-    disposition = db.Column(db.String, nullable=False)
 
     # # Relationships #
     # order = db.relationship('Order', backref='order_items')
@@ -223,7 +222,7 @@ class VendorOrder(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'))
     supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id'))
-    shipping_and_handling = db.Column(db.Float, nullable=False)
+    shipping_and_handling = db.Column(db.Float)
     tax = db.Column(db.Float, nullable=False)
     tracking_number = db.Column(db.String)
     estimated_delivery_date = db.Column(db.DateTime)
@@ -260,6 +259,8 @@ class VendorUser(db.Model, SerializerMixin):
     # Practice-specific discount or markup of up to 20%
     price_multiplier = db.Column(db.Float, nullable=False)
     days_to_ship = db.Column(db.Integer, nullable=False)
+    free_shipping_threshold = db.Column(db.Float)
+    shipping_cost = db.Column(db.Float)
 
 class VendorProduct(db.Model, SerializerMixin):
     __abstract__ = True
