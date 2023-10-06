@@ -73,28 +73,29 @@ class CheckSession(Resource):
             print('USER: ', user)
             return {'user': user.to_dict()}, 200
         else:
-            return {'error': 'No user logged in'}, 401
+            return {'message': 'No user logged in'}, 401
 api.add_resource(CheckSession, '/checksession')
 
 # curl requests for testing:
 # curl -i -X POST -H "Content-Type: application/json" -d '{"email":"ppadilla@example.net","password":"password"}' http://localhost:5555/api/v1/login
 class Login(Resource):
     def post(self):
-        print('Login request received...')
         data = request.json
-        print('DATA: ', data)
-
         user = User.query.filter_by(email=data['email']).first()
         if user is None:
-            return {'error': 'Invalid email'}, 401
-        print('USER: ', user)
+            return {'message': 'Invalid email'}, 401
         if bcrypt.check_password_hash(user.password, data['password']):
             session['user_id'] = user.id
             return {'user': user.to_dict()}, 200
         else:
-            return {'error': 'Incorrect password'}, 401
+            return {'message': 'Incorrect password'}, 401
 api.add_resource(Login, '/login')
 
+class Logout(Resource):
+    def get(self):
+        session['user_id'] = None
+        return {'message': 'User logged out'}, 200
+api.add_resource(Logout, '/logout')
 
 
 # Server will run on port 5555

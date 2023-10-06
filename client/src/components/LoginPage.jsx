@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import LoginForm from './LoginForm';
 
-export default function LoginPage({ user }) {
+export default function LoginPage({ user, setUser }) {
     const [loginError, setLoginError] = useState(false);
 
     // If not logged in, display login form
@@ -14,16 +14,26 @@ export default function LoginPage({ user }) {
                     ? <p>Invalid email or password.</p>
                     : null
                 }
-                <LoginForm setLoginError={setLoginError} />
+                <LoginForm setLoginError={setLoginError} setUser={setUser} />
             </>
         )
+    }
+
+    function handleLogout() {
+        fetch('/api/v1/logout')
+        .then(resp => {
+            if (resp.ok) {
+                setUser(null)
+            }
+        })
     }
 
     // If logged in, display welcome message
     return (
         <>
-            <h1>Welcome, {user.name}</h1>
+            <h1>Hi, {user.first_name} {user.last_name}</h1>
             <p>You are logged in as {user.email}</p>
+            <button onClick={handleLogout}>Logout</button>
         </>
     )
 

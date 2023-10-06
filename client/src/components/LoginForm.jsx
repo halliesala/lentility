@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Form, Input } from 'semantic-ui-react';
 
-export default function Login({ setLoginError }) {
+export default function Login({ setLoginError, setUser }) {
     const BLANK_FORM_DATA = {
         email: "",
         password: "",
@@ -16,9 +16,7 @@ export default function Login({ setLoginError }) {
     }
 
     function handleSubmit(e) {
-        console.log("Form Submitted")
         e.preventDefault()
-        console.log(formData)
         const POST_OPTIONS = {
             method: 'POST',
             headers: {
@@ -28,7 +26,6 @@ export default function Login({ setLoginError }) {
         }
         fetch('/api/v1/login', POST_OPTIONS)
         .then(res => {
-            console.log(res.status, res.ok)
             if (res.ok) {
                 setFormData(BLANK_FORM_DATA)
                 setLoginError(false)
@@ -38,9 +35,8 @@ export default function Login({ setLoginError }) {
             return res.json()
         })
         .then(data => {
-            console.log(data)
+            setUser(data.user)
         })
-        .catch(err => console.log("Error: ", err))
     }
 
     return (

@@ -18,12 +18,13 @@ function App() {
     })
     .then(data => {
       console.log("CHECK SESSION DATA: ", data)
+      setUser(data['user'])
     })
   }, [])
 
   return (
     <>
-      <LoginPage user={user} />
+      <LoginPage user={user} setUser={setUser} />
     </>
   )
 }
