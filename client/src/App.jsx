@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import LentilityBanner from './components/LentilityBanner';
 import 'semantic-ui-css/semantic.min.css';
+import Footer from './components/Footer';
 
 function App() {
 
@@ -26,8 +27,12 @@ function App() {
 
   return (
     <>
+      <p>----------HEADER----------</p>
       <LentilityBanner user={user} setUser={setUser} />
+      <p>----------OUTLET----------</p>
       <Outlet context={{user, setUser}}/>
+      <p>----------FOOTER----------</p>
+      <Footer />
     </>
   )
 }

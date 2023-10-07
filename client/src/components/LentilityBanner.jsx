@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom"
 
 export default function LentilityBanner({user, setUser}) {
 
@@ -12,16 +13,16 @@ export default function LentilityBanner({user, setUser}) {
     
     return (
         <div>
-            <h1>Lentility</h1>
+            <Link to='/'><h1>Lentility</h1></Link>
             {
                 user
                 ? (
-                    <>
+                    <nav>
                         <span>Hi, {user.first_name} {user.last_name}</span>
                         <button onClick={handleLogout}>Logout</button>
-                    </>
+                    </nav>
                     )
-                : null
+                : <Link to='login'>Login</Link>
             }
         </div>
     )

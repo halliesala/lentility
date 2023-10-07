@@ -13,6 +13,8 @@ db = SQLAlchemy(metadata=metadata)
 class Product(db.Model, SerializerMixin):
     __tablename__ = 'products'
 
+    serialize_rules = ('-canonical_product.products', '-supplier.products')
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     canonical_product_id = db.Column(db.Integer, db.ForeignKey('canonical_products.id'))
@@ -21,8 +23,8 @@ class Product(db.Model, SerializerMixin):
     image_link = db.Column(db.String)
 
     # Relationships #
-    # canonical_product = db.relationship('CanonicalProduct', backref='products')
-    # supplier = db.relationship('Supplier', backref='products')
+    canonical_product = db.relationship('CanonicalProduct', back_populates='products')
+    supplier = db.relationship('Supplier', back_populates='products')
 
     # Validations #
     # -- Supplier SKUs must be unique for each supplier
@@ -40,20 +42,21 @@ class Product(db.Model, SerializerMixin):
 class CanonicalProduct(db.Model, SerializerMixin):
     __tablename__ = 'canonical_products'
 
+    serialize_only = ('id', 'manufacturer_id', 'manufacturer_sku', 'name', 'description', 'image_link', 'price_preset', 'products.id', 'products.supplier.name', 'manufacturer.id', 'manufacturer.name')
     id = db.Column(db.Integer, primary_key=True)
     manufacturer_id = db.Column(db.Integer, db.ForeignKey('manufacturers.id'))
     manufacturer_sku = db.Column(db.String, nullable=False)
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String)
     image_link = db.Column(db.String)
-    quantity = db.Column(db.Integer)
 
     # 'Core price' for product. Suppliers will charge a markup on this price, and also randomly vary price by practice.
     price_preset = db.Column(db.Float)
 
     # Relationships #
-    # products = db.relationship('Product', backref='canonical_product')
-    # manufacturer = db.relationship('Manufacturer', backref='canonical_products')
+    products = db.relationship('Product', back_populates='canonical_product')
+    manufacturer = db.relationship('Manufacturer', back_populates='canonical_products')
+    suppliers = association_proxy('products', 'supplier')
 
     # Validations #
     # -- Manufacturer SKUs must be unique for each manufacturer
@@ -66,15 +69,19 @@ class CanonicalProduct(db.Model, SerializerMixin):
 class Manufacturer(db.Model, SerializerMixin):
     __tablename__ = 'manufacturers'
 
+    serialize_rules = ('-canonical_products.manufacturer', '-products.manufacturer')
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, unique=True)
 
     # Relationships #
-    # canonical_products = db.relationship('CanonicalProduct', backref='manufacturer')
-    # products = association_proxy('canonical_products', 'products')
+    canonical_products = db.relationship('CanonicalProduct', back_populates='manufacturer')
+    products = association_proxy('canonical_products', 'products')
 
 class Supplier(db.Model, SerializerMixin):
     __tablename__ = 'suppliers'
+
+    serialize_rules = ('-products.supplier', '-supplier_accounts.supplier', '-vendor_orders.supplier')
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, unique=True)
@@ -82,12 +89,14 @@ class Supplier(db.Model, SerializerMixin):
     preferred = db.Column(db.Boolean, nullable=False)
 
     # # Relationships
-    # products = db.relationship('Product', backref='supplier')
-    # supplier_accounts = db.relationship('SupplierAccount', backref='supplier')
-    # vendor_orders = db.relationship('VendorOrders', backref='supplier')
+    products = db.relationship('Product', back_populates='supplier')
+    supplier_accounts = db.relationship('SupplierAccount', back_populates='supplier')
+    vendor_orders = db.relationship('VendorOrder', back_populates='supplier')
 
 class SupplierAccount(db.Model, SerializerMixin):
     __tablename__ = 'supplier_accounts'
+
+    serialize_rules = ('-supplier.supplier_accounts', '-practice.supplier_accounts')
 
     id = db.Column(db.Integer, primary_key=True)
     supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id'))
@@ -99,8 +108,8 @@ class SupplierAccount(db.Model, SerializerMixin):
     created_time = db.Column(db.DateTime, nullable=False)
 
     # # Relationships #
-    # supplier = db.relationship('Supplier', backref='supplier_accounts')
-    # practice = db.relationship('Practice', backref='supplier_accounts')
+    supplier = db.relationship('Supplier', back_populates='supplier_accounts')
+    practice = db.relationship('Practice', back_populates='supplier_accounts')
 
     # # Potential Validations #
     # # -- Only one account is allowed for each supplier/practice pair
@@ -109,21 +118,24 @@ class SupplierAccount(db.Model, SerializerMixin):
 class Practice(db.Model, SerializerMixin):
     __tablename__ = 'practices'
 
-    serialize_rules = ('-users.practice',)
+    serialize_only = ('id', 'name', 'created_time')
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, unique=True)
     created_time = db.Column(db.DateTime, nullable=False)
 
     # # Relationships #
-    # supplier_accounts = db.relationship('SupplierAccount', backref='practice')
-    # suppliers = association_proxy('supplier_accounts', 'supplier')
+    supplier_accounts = db.relationship('SupplierAccount', back_populates='practice')
+    suppliers = association_proxy('supplier_accounts', 'supplier')
     users = db.relationship('User', back_populates='practice')
-    # addresses = db.relationship('Address', backref='practice')
-    # orders = db.relationship('Order', backref='practice')
+    addresses = db.relationship('Address', back_populates='practice')
+    orders = db.relationship('Order', back_populates='practice')
+    payment_methods = db.relationship('PaymentMethod', back_populates='practice')
 
 class Address(db.Model, SerializerMixin):
     __tablename__ = 'addresses'
+
+    serialize_only = ('id', 'practice_id', 'line_1')
 
     id = db.Column(db.Integer, primary_key=True)
     practice_id = db.Column(db.Integer, db.ForeignKey('practices.id'))
@@ -135,8 +147,8 @@ class Address(db.Model, SerializerMixin):
     is_primary_shipping = db.Column(db.Boolean, nullable=False)
 
     # # Relationships #
-    # practice = db.relationship('Practice', backref='addresses')
-    # orders = db.relationship('Order', backref='shipping_address')
+    practice = db.relationship('Practice', back_populates='addresses')
+    orders = db.relationship('Order', back_populates='shipping_address')
 
     # # Validations #
 
@@ -152,7 +164,7 @@ class Address(db.Model, SerializerMixin):
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
-    serialize_rules = ('-practice.users',)
+    serialize_rules = ('-practice', '-orders')
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String, nullable=False, unique=True)
@@ -165,7 +177,7 @@ class User(db.Model, SerializerMixin):
 
     # # Relationships #
     practice = db.relationship('Practice', back_populates='users')
-    # orders = db.relationship('Order', backref='placed_by_user')
+    orders = db.relationship('Order', back_populates='placed_by_user')
 
     # # Validations #
     # # -- Only one primary user is allowed for each practice #
@@ -183,6 +195,8 @@ class User(db.Model, SerializerMixin):
 class Order(db.Model, SerializerMixin):
     __tablename__ = 'orders'
 
+    serialize_rules = ('-practice', '-placed_by_user', '-payment_method', '-shipping_addresses', '-order_items', '-vendor_orders')
+
     id = db.Column(db.Integer, primary_key=True)
     practice_id = db.Column(db.Integer, db.ForeignKey('practices.id'))
     placed_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
@@ -193,12 +207,12 @@ class Order(db.Model, SerializerMixin):
     shipping_address_id = db.Column(db.Integer, db.ForeignKey('addresses.id'))
 
     # # Relationships #
-    # practice = db.relationship('Practice', backref='orders')
-    # placed_by_user = db.relationship('User', foreign_keys=[placed_by_user_id], post_update=True)
-    # payment_method = db.relationship('PaymentMethod', backref='orders')
-    # shipping_address = db.relationship('Address', backref='orders')
-    # order_items = db.relationship('OrderItem', backref='order')
-    # vendor_orders = db.relationship('VendorOrders', backref='order')
+    practice = db.relationship('Practice', back_populates='orders')
+    placed_by_user = db.relationship('User', foreign_keys=[placed_by_user_id], post_update=True)
+    payment_method = db.relationship('PaymentMethod', back_populates='orders')
+    shipping_address = db.relationship('Address', back_populates='orders')
+    order_items = db.relationship('OrderItem', back_populates='order')
+    vendor_orders = db.relationship('VendorOrder', back_populates='order')
 
     # Validations #
     # Status can be 'in_cart', 'placed', 'delivered'
@@ -215,10 +229,10 @@ class OrderItem(db.Model, SerializerMixin):
     vendor_order_id = db.Column(db.Integer, db.ForeignKey('vendor_orders.id'))
 
     # # Relationships #
-    # order = db.relationship('Order', backref='order_items')
-    # fulfilled_by_product = db.relationship('Product', foreign_keys=[fulfilled_by_product_id], post_update=True)
-    # canonical_product = db.relationship('CanonicalProduct', foreign_keys=[canonical_product_id], post_update=True)
-    # vendor_order = db.relationship('VendorOrders', backref='order_items')
+    order = db.relationship('Order', back_populates='order_items')
+    fulfilled_by_product = db.relationship('Product', foreign_keys=[fulfilled_by_product_id], post_update=True)
+    canonical_product = db.relationship('CanonicalProduct', foreign_keys=[canonical_product_id], post_update=True)
+    vendor_order = db.relationship('VendorOrder', back_populates='order_items')
 
 class VendorOrder(db.Model, SerializerMixin):
     __tablename__ = 'vendor_orders'
@@ -232,9 +246,9 @@ class VendorOrder(db.Model, SerializerMixin):
     estimated_delivery_date = db.Column(db.DateTime)
 
     # # Relationships #
-    # order = db.relationship('Order', backref='vendor_orders')
-    # order_items = db.relationship('OrderItem', backref='vendor_order')
-    # supplier = db.relationship('Supplier', backref='vendor_orders')
+    order = db.relationship('Order', back_populates='vendor_orders')
+    order_items = db.relationship('OrderItem', back_populates='vendor_order')
+    supplier = db.relationship('Supplier', back_populates='vendor_orders')
 
 class PaymentMethod(db.Model, SerializerMixin):
     __tablename__ = 'payment_methods'
@@ -246,9 +260,9 @@ class PaymentMethod(db.Model, SerializerMixin):
     is_primary = db.Column(db.Boolean)
 
     # # Relationships #
-    # orders = db.relationship('Order', backref='payment_method')
-    # practice = db.relationship('Practice', backref='payment_methods')
-    # billing_address = db.relationship('Address', foreign_keys=[billing_address_id], post_update=True)
+    orders = db.relationship('Order', back_populates='payment_method')
+    practice = db.relationship('Practice', back_populates='payment_methods')
+    billing_address = db.relationship('Address', foreign_keys=[billing_address_id], post_update=True)
 
 
 # Abstract classes for vendor dbs #

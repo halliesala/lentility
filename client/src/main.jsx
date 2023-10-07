@@ -5,6 +5,11 @@ import App from './App.jsx'
 import './index.css'
 import LoginPage from './components/LoginPage.jsx';
 import ErrorPage from './components/ErrorPage.jsx';
+import ShopPage from './components/ShopPage.jsx'
+import { canonicalProductsLoader } from './loaders.js';
+import CareersPage from './components/CareersPage.jsx';
+import ApplyPage from './components/ApplyPage.jsx';
+import CareersOutlet from './components/CareersOutlet.jsx';
 
 const router = createBrowserRouter([
   {
@@ -16,6 +21,25 @@ const router = createBrowserRouter([
         path: "login",
         element: <LoginPage />,
       },
+      {
+        path: "shop",
+        element: <ShopPage />,
+        loader: canonicalProductsLoader,
+      },
+      {
+        path: "careers",
+        element: <CareersOutlet />,
+        children: [
+          {
+            path: "open", 
+            element: <CareersPage />
+          },
+          {
+            path: "apply", 
+            element: <ApplyPage />
+          },
+        ]
+      }
     ]
   }])
 

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, session
+from flask import Flask, jsonify, request, session, make_response
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
 from flask_restful import Api, Resource 
@@ -94,6 +94,38 @@ class Logout(Resource):
         return {'message': 'Session cleared'}, 200
 api.add_resource(Logout, '/logout')
 
+# curl requests for testing:
+# curl -i -X POST -H "Content-Type: application/json" -d '{"email":"halliesala@example.com","password":"password","first_name":"Hallie","last_name":"Sala"}' http://localhost:5555/api/v1/apply
+class Apply(Resource):
+    def post(self):
+        data = request.json
+        user = User.query.filter_by(email=data['email']).first()
+        if user is not None:
+            return {'message': 'Email already taken'}, 401
+        else:
+            try:
+                new_admin = User(
+                    email = data['email'],
+                    password = bcrypt.generate_password_hash(data['password']).decode('utf-8'),
+                    practice_id = None,
+                    role='admin',
+                    first_name = data['first_name'],
+                    last_name = data['last_name'],
+                    is_primary = False,
+                )
+                db.session.add(new_admin)
+                db.session.commit()
+                return new_admin.to_dict(), 200
+            except:
+                return {'message': 'Missing form fields'}, 401
+    def patch(self):
+        data = request.json
+        user = User.query.filter_by(email=data['email']).first() 
+        user.role = 'admin'
+        db.session.commit()
+        return user.to_dict(), 200       
+    
+api.add_resource(Apply, '/apply')
 
 # ----- SHOP ---- #
 class Products(Resource):
@@ -120,6 +152,13 @@ class Practices(Resource):
         return practice.to_dict(), 200
 api.add_resource(Practices, '/practice=<int:id>')
 
+
+# Add route to get all orders for all practices
+class Orders(Resource):
+    def get(self):
+        orders = Order.query.all()
+        return [o.to_dict() for o in orders], 200
+api.add_resource(Orders, '/orders')
 
 # Server will run on port 5555
 if __name__ == "__main__":
