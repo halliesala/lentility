@@ -22,8 +22,6 @@ export default function ApplyPage() {
         });
     }
 
-
-
     // Create new user with role 'admin'
     function handleSubmitNewUser(e) {
         e.preventDefault()
@@ -37,7 +35,6 @@ export default function ApplyPage() {
         fetch('/api/v1/apply', POST_OPTIONS)
         .then(res => res.json())
         .then(data => {
-            console.log(data)
             setUser(data)
             setFormData(BLANK_FORM_DATA)
         })
@@ -84,6 +81,11 @@ export default function ApplyPage() {
         <>
             <p>Thank you for your interest in joining the Lentility team as a Business Operations Analyst!</p>
             <p>Please fill out the application below.</p>
+            {
+                loginError
+                ? <p>Error creating account.</p>
+                : null
+            }
             <Form onSubmit={handleSubmitNewUser}>
                 <Form.Field>
                     <label>First Name</label>

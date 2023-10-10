@@ -8,7 +8,6 @@ import Footer from './components/Footer';
 function App() {
 
   const {session} = useLoaderData()
-  console.log("APP / checking session: ", session)
 
   const[user, setUser] = useState(session.user);
 

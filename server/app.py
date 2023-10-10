@@ -96,6 +96,7 @@ api.add_resource(Login, '/login')
 
 class Logout(Resource):
     def delete(self):
+        print("Route LOGOUT ...")
         session.clear()
         return {'message': 'Session cleared'}, 200
 api.add_resource(Logout, '/logout')
