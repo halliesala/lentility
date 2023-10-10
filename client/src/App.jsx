@@ -1,29 +1,16 @@
 import './App.css'
-import { Outlet } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { Outlet, useLoaderData } from 'react-router-dom'
+import { useState } from 'react'
 import LentilityBanner from './components/LentilityBanner';
 import 'semantic-ui-css/semantic.min.css';
 import Footer from './components/Footer';
 
 function App() {
 
-  const[user, setUser] = useState(null);
+  const {session} = useLoaderData()
+  console.log("APP / checking session: ", session)
 
-  useEffect(() => {
-    console.log("Checking session...")
-    fetch("api/v1/checksession")
-    .then(resp => {
-      if (resp.ok) {
-        return resp.json().then(data => {
-          console.log("Session found. Logged in as: ", data.user.email)
-          setUser(data.user)
-        })
-      } else {
-        return null
-      }
-    })
-    
-  }, [])
+  const[user, setUser] = useState(session.user);
 
   return (
     <>

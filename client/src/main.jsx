@@ -6,7 +6,7 @@ import './index.css'
 import LoginPage from './components/LoginPage.jsx';
 import ErrorPage from './components/ErrorPage.jsx';
 import ShopPage from './components/ShopPage.jsx'
-import { canonicalProductsLoader } from './loaders.js';
+import { canonicalProductsLoader, sessionLoader } from './loaders.js';
 import CareersPage from './components/CareersPage.jsx';
 import ApplyPage from './components/ApplyPage.jsx';
 import CareersOutlet from './components/CareersOutlet.jsx';
@@ -15,6 +15,7 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
+    loader: sessionLoader,
     errorElement: <ErrorPage />,
     children: [
       {

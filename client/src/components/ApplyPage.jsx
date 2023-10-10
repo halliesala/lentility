@@ -5,7 +5,6 @@ import { Form, Input } from 'semantic-ui-react';
 export default function ApplyPage() {
 
     const {user, setUser} = useOutletContext()
-    console.log("User: ", user)
 
     const BLANK_FORM_DATA = {
         first_name: "",
@@ -14,6 +13,7 @@ export default function ApplyPage() {
         password: "",
     }
     const [formData, setFormData] = useState(BLANK_FORM_DATA);
+    const [loginError, setLoginError] = useState(false);
 
     function handleChange(e) {
         setFormData({
@@ -21,6 +21,8 @@ export default function ApplyPage() {
             [e.target.name]: e.target.value
         });
     }
+
+
 
     // Create new user with role 'admin'
     function handleSubmitNewUser(e) {
@@ -36,6 +38,7 @@ export default function ApplyPage() {
         .then(res => res.json())
         .then(data => {
             console.log(data)
+            setUser(data)
             setFormData(BLANK_FORM_DATA)
         })
     }

@@ -15,7 +15,7 @@ export default function Login({ setLoginError, setUser }) {
         });
     }
 
-    function handleSubmit(e) {
+    function login(e) {
         e.preventDefault()
         const POST_OPTIONS = {
             method: 'POST',
@@ -41,7 +41,7 @@ export default function Login({ setLoginError, setUser }) {
 
     return (
         <>
-            <Form  onSubmit={handleSubmit}>
+            <Form  onSubmit={login}>
                 <Form.Field>
                     <label>Email</label>
                     <Input type='text' name='email' onChange={handleChange} value={formData.email} />

@@ -64,21 +64,27 @@ api.add_resource(Home, '/')
 # ----- AUTHORIZATION ----- #
 class CheckSession(Resource):
     def get(self):
-        print("Checking session...")
+        print("Route CHECKSESSION ...")
         if 'user_id' in session:
             user = User.query.filter_by(id=session['user_id']).first()
-            print('USER: ', user)
-            return {'user': user.to_dict()}, 200
+            response = {'user': user.to_dict()}, 200
+            print("Response:", response)
+            return response
         else:
-            return {'message': 'No user logged in'}, 401
+            response = {'message': 'No user logged in'}, 401
+            print("Response:", response)
+            return response
 api.add_resource(CheckSession, '/checksession')
 
 # curl requests for testing:
 # curl -i -X POST -H "Content-Type: application/json" -d '{"email":"ppadilla@example.net","password":"password"}' http://localhost:5555/api/v1/login
 class Login(Resource):
     def post(self):
+        print("Route LOGIN ...")
         data = request.json
+        print("Data:", data)
         user = User.query.filter_by(email=data['email']).first()
+        print("User:", user)
         if user is None:
             return {'message': 'Invalid email'}, 401
         if bcrypt.check_password_hash(user.password, data['password']):
@@ -98,10 +104,13 @@ api.add_resource(Logout, '/logout')
 # curl -i -X POST -H "Content-Type: application/json" -d '{"email":"halliesala@example.com","password":"password","first_name":"Hallie","last_name":"Sala"}' http://localhost:5555/api/v1/apply
 class Apply(Resource):
     def post(self):
+        print("Route APPLY ...")
         data = request.json
         user = User.query.filter_by(email=data['email']).first()
         if user is not None:
-            return {'message': 'Email already taken'}, 401
+            response = {'message': 'Email already taken'}, 401
+            print("Response: ", response)
+            return response
         else:
             try:
                 new_admin = User(
@@ -115,15 +124,22 @@ class Apply(Resource):
                 )
                 db.session.add(new_admin)
                 db.session.commit()
-                return new_admin.to_dict(), 200
+                session['user_id'] = new_admin.id
+                response = new_admin.to_dict(), 200
+                print("Response: ", response)
+                return response
             except:
-                return {'message': 'Missing form fields'}, 401
+                response = {'message': 'Missing form fields'}, 401
+                print("Response: ", response)
+                return response
     def patch(self):
         data = request.json
         user = User.query.filter_by(email=data['email']).first() 
         user.role = 'admin'
         db.session.commit()
-        return user.to_dict(), 200       
+        response = user.to_dict(), 200
+        print("Response: ", response)
+        return response        
     
 api.add_resource(Apply, '/apply')
 
