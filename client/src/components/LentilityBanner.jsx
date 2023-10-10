@@ -20,6 +20,7 @@ export default function LentilityBanner({user, setUser}) {
                     <nav>
                         <span>Hi, {user.first_name} {user.last_name}</span>
                         <button onClick={handleLogout}>Logout</button>
+                        <Link to='/shop'>Shop</Link>
                     </nav>
                     )
                 : <Link to='login'>Login</Link>

@@ -6,6 +6,7 @@ from flask_cors import CORS
 import os
 from dotenv import load_dotenv
 from models import db, User, Product, CanonicalProduct, Order, Practice
+from datetime import datetime
 
 # ----- ENVIRONMENT VARIABLES ----- #
 load_dotenv()
@@ -141,8 +142,46 @@ class Apply(Resource):
         response = user.to_dict(), 200
         print("Response: ", response)
         return response        
-    
 api.add_resource(Apply, '/apply')
+
+# curl requests for testing:
+# curl -i -X POST -H "Content-Type: application/json" -d '{"practice_name":"My Example Practice","email": "example@example.com", "password":"password", "first_name":"John", "last_name":"Doe"}' http://localhost:5555/api/v1/signup
+class Signup(Resource):
+    def post(self):
+        print("Route APPLY ...")
+        data = request.json
+        practice = Practice.query.filter_by(id=data['practice_name']).first()
+        user = User.query.filter_by(email=data['email']).first()
+        if practice is not None:
+            response = {'message': 'Practice name already taken.'}, 401
+            print("Response: ", response)
+            return response
+        elif user is not None:
+            response = {'message': 'Email already taken'}, 401
+            print("Response: ", response)
+            return response
+        else:
+            new_practice = Practice(
+                name=data['practice_name'],
+                created_time = datetime.now(),
+            )
+            db.session.add(new_practice)
+            db.session.commit()
+            new_user = User(
+                email = data['email'],
+                password = bcrypt.generate_password_hash(data['password']).decode('utf-8'),
+                practice_id = new_practice.id,
+                role='lentist',
+                first_name = data['first_name'],
+                last_name = data['last_name'],
+                is_primary = True,
+            )
+            db.session.add(new_practice)
+            db.session.commit()
+            response = new_user.to_dict(), 200
+        print("Response: ", response)
+        return response
+api.add_resource(Signup, '/signup')
 
 # ----- SHOP ---- #
 class Products(Resource):
