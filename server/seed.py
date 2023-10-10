@@ -141,25 +141,31 @@ class SeedDB:
         for p in practices:
             # All users have the same password, 'password'
             # Generate primary user
+            first_name = fake.first_name()
+            last_name = fake.last_name()
+            email_domain = 'lentilmail.com'
             primary_user = m.User(
-                email = fake.email(),
+                email = f"{first_name.lower()}.{last_name.lower()}@{email_domain}",
                 password = bcrypt.generate_password_hash('password').decode('utf-8'),
                 practice_id = p.id,
                 role = 'lentist',
-                first_name = fake.first_name(),
-                last_name = fake.last_name(),
+                first_name = first_name,
+                last_name = last_name,
                 is_primary = True,
             )
             m.db.session.add(primary_user)
             # Generate 0-2 secondary users
             for _ in range(randint(0, 2)):
+                first_name = fake.first_name()
+                last_name = fake.last_name()
+                email_domain = 'lentilmail.com'
                 u = m.User(
-                    email = fake.email(),
+                    email = f"{first_name.lower()}.{last_name.lower()}@{email_domain}",
                     password = bcrypt.generate_password_hash('password').decode('utf-8'),
                     practice_id = p.id,
                     role = choice(['lentist', 'lentil_assistant']),
-                    first_name = fake.first_name(),
-                    last_name = fake.last_name(),
+                    first_name = first_name,
+                    last_name = last_name,
                     is_primary = False,
                 )
                 m.db.session.add(u)
@@ -293,7 +299,7 @@ class SeedDB:
                 practice_id = p.id,
                 placed_by_user_id = choice(users).id,
                 created_time = created_time,
-                placed_time = placed_time,
+                placed_time = None,
                 status = 'in_cart',
                 payment_method_id = choice(payment_methods).id,
                 shipping_address_id = choice(addresses).id,
@@ -324,6 +330,7 @@ class SeedDB:
                     # Get days to ship
                     vendor_user_record = vendor_user_class.query.filter_by(username=supplier_account.username, password=supplier_account.password).first()
                     days_to_ship = vendor_user_record.days_to_ship
+                    estimated_delivery_date = o.placed_time + timedelta(days=days_to_ship) if o.placed_time else None
                     vo = m.VendorOrder(
                         order_id = o.id,
                         supplier_id = s.id,
@@ -332,7 +339,7 @@ class SeedDB:
                         tax = 0.00,
                         tracking_number = fake.bothify(text='Z##?###??#?#?#####?##?'),
                         # Update this to be placed_time + vendor_user.days_to_ship
-                        estimated_delivery_date = o.placed_time + timedelta(days=days_to_ship),
+                        estimated_delivery_date = estimated_delivery_date,
                     )
                     m.db.session.add(vo)
         m.db.session.commit()
@@ -373,11 +380,13 @@ class SeedDB:
                         vendor_product_class = getattr(m, vendor_product_class_name)
                         vendor_product = vendor_product_class.query.filter_by(sku=sp.supplier_sku).first()
                         price_preset = vendor_product.price_preset
+                        # Created_time is between order.created_time and order.placed_time (or now if order is in_cart)
+                        created_time = fake.date_between(start_date=o.created_time, end_date=(o.placed_time if o.placed_time else datetime.now() ))
                         # Create the order item
                         oi = m.OrderItem(
                             order_id = o.id,
                             fulfilled_by_product_id = sp.id,
-                            created_time = o.placed_time,
+                            created_time = created_time,
                             canonical_product_id = sp.canonical_product_id,
                             quantity = randint(1, 9),
                             price = price_preset * price_multiplier,  

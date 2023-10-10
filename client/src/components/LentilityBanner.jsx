@@ -17,11 +17,16 @@ export default function LentilityBanner({user, setUser}) {
             {
                 user
                 ? (
-                    <nav>
-                        <span>Hi, {user.first_name} {user.last_name}</span>
-                        <button onClick={handleLogout}>Logout</button>
-                        <Link to='/shop'>Shop</Link>
-                    </nav>
+                    <>
+                        <nav>
+                            <span>Hi, {user.first_name} {user.last_name}</span>
+                            <button onClick={handleLogout}>Logout</button>
+                        </nav>
+                        <nav>
+                            <Link to='/shop'>Shop</Link>
+                            <Link to='/cart'>Cart</Link>
+                        </nav>
+                    </>
                     )
                 : <Link to='login'>Login</Link>
             }

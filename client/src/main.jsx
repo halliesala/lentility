@@ -6,11 +6,12 @@ import './index.css'
 import LoginPage from './components/LoginPage.jsx';
 import ErrorPage from './components/ErrorPage.jsx';
 import ShopPage from './components/ShopPage.jsx'
-import { canonicalProductsLoader, sessionLoader } from './loaders.js';
+import { canonicalProductsLoader, sessionLoader, cartLoader } from './loaders.js';
 import CareersPage from './components/CareersPage.jsx';
 import ApplyPage from './components/ApplyPage.jsx';
 import CareersOutlet from './components/CareersOutlet.jsx';
 import SignUpPage from './components/SignUpPage.jsx';
+import CartPage from './components/CartPage.jsx';
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,11 @@ const router = createBrowserRouter([
         path: "shop",
         element: <ShopPage />,
         loader: canonicalProductsLoader,
+      },
+      {
+        path: "cart",
+        element: <CartPage />,
+        loader: cartLoader,
       },
       {
         path: "careers",

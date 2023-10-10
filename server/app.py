@@ -5,7 +5,7 @@ from flask_restful import Api, Resource
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from models import db, User, Product, CanonicalProduct, Order, Practice
+from models import db, User, Product, CanonicalProduct, Order, Practice, OrderItem
 from datetime import datetime
 
 # ----- ENVIRONMENT VARIABLES ----- #
@@ -208,13 +208,81 @@ class Practices(Resource):
         return practice.to_dict(), 200
 api.add_resource(Practices, '/practice=<int:id>')
 
-
-# Add route to get all orders for all practices
 class Orders(Resource):
     def get(self):
         orders = Order.query.all()
         return [o.to_dict() for o in orders], 200
 api.add_resource(Orders, '/orders')
+
+# ----- CART ----- #
+class OrderItemsByOrderID(Resource):
+    def get(self, order_id):
+        order_items = OrderItem.query.filter_by(order_id=order_id).all()
+        return [oi.to_dict() for oi in order_items], 200
+api.add_resource(OrderItemsByOrderID, '/order=<int:order_id>/items')
+
+class Cart(Resource):
+    # curl -i -X GET http://localhost:5555/api/v1/cart
+    def get(self):
+        print("Route CART ...")
+        print("Getting cart ...")
+        if 'user_id' not in session:
+            response = {'message': 'No user logged in'}, 401
+            print("Response: ", response)
+            return response
+        user = User.query.filter_by(id=session['user_id']).first()
+        if user.practice_id is None:
+            response = {'message': "User must belong to a practice"}, 401
+            print("Response: ", response)
+            return response
+        # Get active order
+        orders = Order.query.filter_by(practice_id=user.practice_id)
+        active_cart = max(orders, key=lambda o: o.id)
+        order_items = OrderItem.query.filter_by(order_id=active_cart.id).all()
+        response = [oi.to_dict() for oi in order_items], 200
+        print("Response: ", response)
+        return response
+
+    # curl -i -X POST -H "Content-Type: application/json" -d '{"user_id":1,"canonical_product_id":1,"quantity":1}' http://localhost:5555/api/v1/additemtocart
+    def post(self):
+        print("Route CART ...")
+        print("Adding item to cart ...")
+        data = request.json
+        # data should contain user_id, canonical_product_id, and quantity
+        if not 'user_id' in data and 'canonical_product_id' in data and 'quantity' in data:
+            response = {'message': "Request must contain user_id, canonical_product_id, and quantity"}, 401
+            print("Response: ", response)
+            return response
+        # Check if user belongs to a practice
+        user = User.query.filter_by(id=data['user_id']).first()
+        if user.practice_id is None:
+            response = {'message': "User must belong to a practice"}, 401
+            print("Response: ", response)
+            return response
+        # Get active order
+        orders = Order.query.filter_by(practice_id=user.practice_id)
+        active_cart = max(orders, key=lambda o: o.id)
+        # Check if item already exists in cart
+        existing_item = OrderItem.query.filter_by(order_id=active_cart.id, canonical_product_id=data['canonical_product_id']).first()
+        if existing_item:
+            existing_item.quantity += data['quantity']
+            db.session.commit()
+            response = existing_item.to_dict(), 200
+            print("Response: ", response)
+            return response
+        else:
+            new_item = OrderItem(
+                order_id = active_cart.id,
+                canonical_product_id = data['canonical_product_id'],
+                quantity = data['quantity'],
+                created_time = datetime.now(),
+            )
+            db.session.add(new_item)
+            db.session.commit()
+            response = new_item.to_dict(), 200
+            print("Response: ", response)
+            return response
+api.add_resource(Cart, '/cart')
 
 # Server will run on port 5555
 if __name__ == "__main__":

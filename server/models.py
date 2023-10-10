@@ -42,10 +42,11 @@ class Product(db.Model, SerializerMixin):
 class CanonicalProduct(db.Model, SerializerMixin):
     __tablename__ = 'canonical_products'
 
-    serialize_only = ('id', 'manufacturer_id', 'manufacturer_sku', 'name', 'description', 'image_link', 'price_preset', 'products.id', 'products.supplier.name', 'manufacturer.id', 'manufacturer.name')
+    serialize_only = ('id', 'manufacturer_id', 'manufacturer_sku', 'name', 'description', 'image_link', 'price_preset', 'products.id', 'products.supplier.name', 'products.supplier_sku', 'suppliers.id', 'suppliers.name', 'manufacturer.id', 'manufacturer.name')
     id = db.Column(db.Integer, primary_key=True)
     manufacturer_id = db.Column(db.Integer, db.ForeignKey('manufacturers.id'))
     manufacturer_sku = db.Column(db.String, nullable=False)
+    quantity = db.Column(db.Integer)
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String)
     image_link = db.Column(db.String)
@@ -131,6 +132,7 @@ class Practice(db.Model, SerializerMixin):
     addresses = db.relationship('Address', back_populates='practice')
     orders = db.relationship('Order', back_populates='practice')
     payment_methods = db.relationship('PaymentMethod', back_populates='practice')
+
 
 class Address(db.Model, SerializerMixin):
     __tablename__ = 'addresses'
@@ -219,13 +221,15 @@ class Order(db.Model, SerializerMixin):
 class OrderItem(db.Model, SerializerMixin):
     __tablename__ = 'order_items'
 
+    serialize_only = ('id', 'order_id', 'fulfilled_by_product_id', 'created_time', 'canonical_product_id', 'canonical_product.name', 'canonical_product.manufacturer.name', 'quantity', 'price', 'vendor_order_id')
+
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'))
     fulfilled_by_product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
     created_time = db.Column(db.DateTime, nullable=False)
     canonical_product_id = db.Column(db.Integer, db.ForeignKey('canonical_products.id'))
     quantity = db.Column(db.Integer, nullable=False)
-    price = db.Column(db.Float, nullable=False)
+    price = db.Column(db.Float)
     vendor_order_id = db.Column(db.Integer, db.ForeignKey('vendor_orders.id'))
 
     # # Relationships #
