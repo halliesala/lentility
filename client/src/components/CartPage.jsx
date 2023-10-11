@@ -1,6 +1,6 @@
-import { useLoaderData, Link } from "react-router-dom"
-import { Table, Icon, Grid } from "semantic-ui-react"
-import CartRow from "./CartRow"
+import { useLoaderData, Link } from "react-router-dom";
+import { Table } from "semantic-ui-react";
+import CartRow from "./CartRow";
 
 export default function CartPage() {
     const { cart } = useLoaderData()
@@ -14,15 +14,15 @@ export default function CartPage() {
         )
     }
 
+    
+
 
     return (
         <>
             <h2>Cart</h2>
             <Table celled>
                 <Table.Header>
-                    <Table.Row
-                        
-                    >
+                    <Table.Row>
                         <Table.HeaderCell>Product</Table.HeaderCell>
                         <Table.HeaderCell>Quantity</Table.HeaderCell>
                         <Table.HeaderCell>Price</Table.HeaderCell>

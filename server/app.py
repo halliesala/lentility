@@ -225,6 +225,7 @@ api.add_resource(OrderItemsByOrderID, '/order=<int:order_id>/items')
 class OrderItemByID(Resource):
     def patch(self, id):
         print("Route ORDERITEM ...")
+        print("Updating order item ...")
         data = request.json
         order_item = OrderItem.query.filter_by(id=id).first()
         if not order_item:
@@ -236,6 +237,19 @@ class OrderItemByID(Resource):
         response = order_item.to_dict(), 200
         print("Response: ", response)
         return response
+    
+    def delete(self, id):
+        print("Route ORDERITEM ...")
+        print("Deleting order item ...")
+        order_item = OrderItem.query.filter_by(id=id).first()
+        if not order_item:
+            response = {'message': 'Order item not found'}, 401
+            print("Response: ", response)
+            return response
+        db.session.delete(order_item)
+        db.session.commit()
+        # 204 'no content'
+        response = {'message': 'Order item deleted'}, 204
 api.add_resource(OrderItemByID, '/orderitem=<int:id>')
 
 class Cart(Resource):

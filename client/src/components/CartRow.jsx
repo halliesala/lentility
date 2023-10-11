@@ -6,6 +6,7 @@ export default function CartRow({ item }) {
     console.log("CART ROW ITEM", item)
 
     const [quantity, setQuantity] = useState(item.quantity)
+    const [isDeleted, setIsDeleted] = useState(false)
 
     function updateQuantity(e) {
         // Prevent negative quantities
@@ -29,6 +30,13 @@ export default function CartRow({ item }) {
         })
     }
 
+    function deleteItem() {
+        fetch(`/api/v1/orderitem=${item.id}`, {'method': 'DELETE'})
+        .then(() => setIsDeleted(true))
+    }
+
+    if (isDeleted) return null;
+
     return (
         <Table.Row >
             <Table.Cell>
@@ -46,7 +54,7 @@ export default function CartRow({ item }) {
                 {item.price ? (item.price * item.quantity).toFixed(2): <i>pending</i>}
             </Table.Cell>
             <Table.Cell>
-                <Icon name='trash alternate outline' />
+                <Icon name='trash alternate outline' onClick={deleteItem} />
             </Table.Cell>
         </Table.Row>
     )
