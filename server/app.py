@@ -6,7 +6,9 @@ from flask_cors import CORS
 import os
 from dotenv import load_dotenv
 from models import db, User, Product, CanonicalProduct, Order, Practice, OrderItem, SupplierAccount, Supplier
+import models
 from datetime import datetime
+from random import randint, choice, randrange
 
 # ----- ENVIRONMENT VARIABLES ----- #
 load_dotenv()
@@ -383,7 +385,64 @@ class SupplierAccounts(Resource):
         return [sa.to_dict() for sa in supplier_accounts], 200
 api.add_resource(SupplierAccounts, '/supplieraccounts')
         
+class ConnectVendor(Resource):
+    def post(self):
+        data = request.json
+        vendor_id = data['vendor_id']
+        username = data['username']
+        password = data['password']
+        # Get user from session
+        user = User.query.filter_by(id=session['user_id']).first()
+        supplier = Supplier.query.filter_by(id=vendor_id).first()
+        # Get practice from user
+        # If no practice, return error
+        if user.practice_id is None:
+            response = {'message': 'User must belong to a practice'}, 401
+            print("Response: ", response)
+            return response
+        # If practice, look for existing supplier account
+        supplier_account = SupplierAccount.query.filter_by(practice_id=user.practice.id, supplier_id=vendor_id).first()
+        # If existing supplier account, return error
+        if supplier_account:
+            response = {'message': 'Supplier account already exists'}, 401
+            print("Response: ", response)
+            return response
+        # If no existing supplier account, create new supplier account 
+        # & corresponding VendorUser record
+        supplier_account = SupplierAccount(
+            practice_id = user.practice.id,
+            supplier_id = vendor_id,
+            username = username,
+            password = password,
+            valid = True,
+            last_validated = datetime.now(),
+            created_time = datetime.now(),
+        )
+        vendor_prefix = f"{supplier.name.replace(' ', '').capitalize()}"
+        vendor_user_class= getattr(models, f"{vendor_prefix}User")
+        # Preferred vendors vs non-preferred
+        price_multiplier = 1.0 if supplier.preferred else randrange(80, 120) / 100
+        shipping_cost = 9.99 if supplier.preferred else choice([9.99, 14.99, 19.99])
+        free_shipping_threshold = 49.99 if supplier.preferred else choice([0, 49.99, 99.99, 199.99])
+        
+        vendor_user = vendor_user_class(
+            username=username,
+            password=password,
+            price_multiplier = price_multiplier,
+            days_to_ship = randint(1, 5),
+            free_shipping_threshold = free_shipping_threshold,
+            shipping_cost = shipping_cost,
+        )
 
+        db.session.add(supplier_account)
+        db.session.add(vendor_user)
+
+        db.session.commit()
+        # Return account
+        response = {'supplier_account': supplier_account.to_dict(), 'VendorUser record': vendor_user.to_dict()}, 200
+        print("Response: ", response)
+        return response
+api.add_resource(ConnectVendor, '/connectvendor')
 
 # Server will run on port 5555
 if __name__ == "__main__":

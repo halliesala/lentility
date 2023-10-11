@@ -9,6 +9,8 @@ def getVendorProductPreset(product_id, practice_id):
     product = models.Product.query.filter_by(id=product_id).first()
     supplier = product.supplier
     print("SUPPLIER: ", supplier.name, supplier.id)
+    if supplier.preferred:
+        # No account needed; price is just 
     supplier_account = models.SupplierAccount.query.filter_by(practice_id=practice_id, supplier_id=supplier.id).all()
     print("SUPPLIER ACCOUNT: ", supplier_account)
     if not supplier_account:

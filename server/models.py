@@ -102,7 +102,8 @@ class Supplier(db.Model, SerializerMixin):
 class SupplierAccount(db.Model, SerializerMixin):
     __tablename__ = 'supplier_accounts'
 
-    serialize_rules = ('-supplier.supplier_accounts', '-practice.supplier_accounts')
+    # serialize_rules = ('-supplier.supplier_accounts', '-practice.supplier_accounts')
+    serialize_only = ('id', 'supplier_id', 'practice_id', 'username', 'password', 'valid', 'last_validated', 'created_time', 'supplier.name', 'supplier.id', 'practice.name', 'practice.id')
 
     id = db.Column(db.Integer, primary_key=True)
     supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id'))

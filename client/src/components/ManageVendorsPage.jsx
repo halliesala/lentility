@@ -7,6 +7,18 @@ export default function ManageVendorsPage() {
 
     function connectVendor(supplierID) {
         console.log("TODO: connect vendor with id ", supplierID)
+        const POST_OPTIONS = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                'vendor_id': supplierID,
+                'username': 'testuser',
+                'password': 'password',
+             })
+        }
+        fetch('/api/v1/connectvendor', POST_OPTIONS)
+        .then(resp => resp.json())
+        .then(data => console.log(data))
     }
 
     console.log("supplierAccounts", supplierAccounts)
@@ -35,7 +47,13 @@ export default function ManageVendorsPage() {
                                         <Label color='green' ribbon>Preferred</Label>
                                         {s.name}
                                     </Table.Cell>
-                                    <Table.Cell><Icon name='checkmark' color='green' /></Table.Cell>
+                                    <Table.Cell>
+                                        {
+                                            connectedVendorIds.includes(s.id)
+                                            ? <Icon name='checkmark' color='green' />
+                                            : <button onClick={() => connectVendor(s.id)}>Connect Vendor</button>
+                                        }
+                                    </Table.Cell>
                                 </Table.Row>
                             )
                         }
