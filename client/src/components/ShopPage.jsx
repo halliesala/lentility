@@ -1,9 +1,10 @@
 import { useLoaderData, useOutletContext } from 'react-router-dom';
-import { Grid, Pagination } from 'semantic-ui-react';
-import { useEffect, useState } from 'react';
+import { Grid } from 'semantic-ui-react';
+import { useState } from 'react';
 import ProductCard from './ProductCard';
 import SearchBar from './SearchBar';
 import SearchTag from './SearchTag';
+import PaginationBar from './PaginationBar';
 
 export default function ShopPage() {
 
@@ -80,6 +81,7 @@ export default function ShopPage() {
                         })
                 }
             </Grid>
+
             <div className="pagination-div">
                 <PaginationBar
                     activePage={activePage}
@@ -92,17 +94,3 @@ export default function ShopPage() {
     )
 }
 
-function PaginationBar({ activePage, setActivePage, totalPages }) {
-
-    function handlePageChange(e) {
-        setActivePage(e.target.getAttribute('value'))
-    }
-
-    return (
-        <Pagination
-            onPageChange={handlePageChange}
-            totalPages={totalPages}
-            activePage={activePage}
-        />
-    )
-}

@@ -54,7 +54,7 @@ export default function CartRow({ item }) {
                 {item.price ? (item.price * item.quantity).toFixed(2): <i>pending</i>}
             </Table.Cell>
             <Table.Cell>
-                <Icon name='trash alternate outline' onClick={deleteItem} />
+                <Icon className='delete-icon' name='trash alternate outline' onClick={deleteItem} />
             </Table.Cell>
         </Table.Row>
     )

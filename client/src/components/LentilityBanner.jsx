@@ -37,7 +37,8 @@ function LoggedInLinks({ user, setUser }) {
             <nav className="header-nav">
                 <Link className="nav-bar-link" to='/shop'>Shop</Link>
                 <Link className="nav-bar-link" to='/cart'>Cart</Link>
-                <button className="nav-bar-link logout-button" onClick={handleLogout}>Logout</button>
+                <Link className="nav-bar-link" to='/account/vendors'>Account</Link>
+                <Link className="nav-bar-link" to='/logout'>Logout</Link>
             </nav>
         </>
     )

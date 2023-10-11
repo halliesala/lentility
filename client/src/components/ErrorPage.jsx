@@ -18,7 +18,12 @@ export default function ErrorPage() {
                 </Grid.Column>
                 <Grid.Column width={6} >
                     <div>
-                        <h2>{error.status}: {error.statusText}</h2>
+                        {
+                            error
+                            ? <h2>{error.status}: {error.statusText}</h2>
+                            : <h2>Oops!</h2>
+                        }
+                        
                         <p>You probably want to be somewhere else. Go <Link to="/">home</Link>?</p>
                     </div>
                 </Grid.Column>

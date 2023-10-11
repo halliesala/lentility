@@ -6,13 +6,16 @@ import './index.css'
 import LoginPage from './components/LoginPage.jsx';
 import ErrorPage from './components/ErrorPage.jsx';
 import ShopPage from './components/ShopPage.jsx'
-import { canonicalProductsLoader, sessionLoader, cartLoader } from './loaders.js';
+import { canonicalProductsLoader, sessionLoader, cartLoader, supplierAccountsLoader } from './loaders.js';
 import CareersPage from './components/CareersPage.jsx';
 import ApplyPage from './components/ApplyPage.jsx';
 import CareersOutlet from './components/CareersOutlet.jsx';
 import SignUpPage from './components/SignUpPage.jsx';
 import CartPage from './components/CartPage.jsx';
 import CheckoutPage from './components/CheckoutPage.jsx';
+import Logout from './components/Logout.jsx';
+import AccountOutlet from './components/AccountOutlet.jsx';
+import ManageVendorsPage from './components/ManageVendorsPage.jsx';
 
 const router = createBrowserRouter([
   {
@@ -24,6 +27,10 @@ const router = createBrowserRouter([
       {
         path: "login",
         element: <LoginPage />,
+      },
+      {
+        path: "logout",
+        element: <Logout />,
       },
       {
         path: "signup",
@@ -43,6 +50,17 @@ const router = createBrowserRouter([
         path: "checkout",
         element: <CheckoutPage />,
         loader: cartLoader,
+      },
+      {
+        path: "account",
+        element: <AccountOutlet />,
+        children: [
+          {
+            path: "vendors",
+            element: <ManageVendorsPage />,
+            loader: supplierAccountsLoader,
+          }
+        ]
       },
       {
         path: "careers",

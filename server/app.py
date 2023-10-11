@@ -5,7 +5,7 @@ from flask_restful import Api, Resource
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from models import db, User, Product, CanonicalProduct, Order, Practice, OrderItem
+from models import db, User, Product, CanonicalProduct, Order, Practice, OrderItem, SupplierAccount, Supplier
 from datetime import datetime
 
 # ----- ENVIRONMENT VARIABLES ----- #
@@ -99,7 +99,9 @@ class Logout(Resource):
     def delete(self):
         print("Route LOGOUT ...")
         session.clear()
-        return {'message': 'Session cleared'}, 200
+        response = {'message': 'Session cleared'}, 200
+        print(response)
+        return response
 api.add_resource(Logout, '/logout')
 
 # curl requests for testing:
@@ -214,6 +216,11 @@ class Orders(Resource):
         orders = Order.query.all()
         return [o.to_dict() for o in orders], 200
 api.add_resource(Orders, '/orders')
+
+class Suppliers(Resource):
+    def get(self):
+        return [s.to_dict() for s in Supplier.query.all()], 200
+api.add_resource(Suppliers, '/suppliers')
 
 # ----- CART ----- #
 class OrderItemsByOrderID(Resource):
@@ -334,6 +341,49 @@ api.add_resource(Cart, '/cart')
 class OptimizeCart(Resource):
     pass
 api.add_resource(OptimizeCart, '/optimizecart')
+
+class GetCartPrices(Resource):
+    def get(self, order_id):
+        order_items = OrderItem.query.filter_by(order_id = order_id)
+        products_list = []
+        for oi in order_items:
+            # Get products from canonical
+            products = oi.canonical_product.products
+            products_list.append({
+                'order_item_id': oi.id, 
+                'supplier_products': [p.to_dict() for p in products],
+            })
+        return products_list, 200
+api.add_resource(GetCartPrices, '/getcartprices/order=<int:order_id>')
+
+            
+class SupplierAccountsByID(Resource):
+    def get(self, user_id):
+        user = User.query.filter_by(id=user_id).first()
+        if user.practice_id is None:
+            response = {'message': "User must belong to a practice"}, 401
+            print("Response: ", response)
+            return response
+        supplier_accounts = SupplierAccount.query.filter_by(practice_id=user.practice_id).all()
+        return [sa.to_dict() for sa in supplier_accounts], 200
+api.add_resource(SupplierAccountsByID, '/supplieraccounts/user=<int:user_id>')
+
+class SupplierAccounts(Resource):
+    def get(self):
+        if 'user_id' not in session:
+            response = {'message': 'No user logged in'}, 401
+            print("Response: ", response)
+            return response
+        user = User.query.filter_by(id=session['user_id']).first()
+        if user.practice_id is None:
+            response = {'message': "User must belong to a practice"}, 401
+            print("Response: ", response)
+            return response
+        supplier_accounts = SupplierAccount.query.filter_by(practice_id=user.practice_id).all()
+        return [sa.to_dict() for sa in supplier_accounts], 200
+api.add_resource(SupplierAccounts, '/supplieraccounts')
+        
+
 
 # Server will run on port 5555
 if __name__ == "__main__":

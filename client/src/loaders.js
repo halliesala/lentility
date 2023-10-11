@@ -19,3 +19,13 @@ export async function cartLoader() {
     return { cart }
 }
 
+export async function supplierAccountsLoader() {
+    const response = await fetch("/api/v1/supplieraccounts")
+    const supplierAccounts = await response.json()
+    console.log("SUPPLIER ACCOUNTS LOADER: ", supplierAccounts)
+    const response2 = await fetch("/api/v1/suppliers")
+    const suppliers = await response2.json()
+    console.log("SUPPLIERS LOADER: ", suppliers)
+    return { supplierAccounts, suppliers }
+}
+
