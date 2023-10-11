@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Container, Header } from 'semantic-ui-react'
+import { Card, Header } from 'semantic-ui-react'
 import { Link } from 'react-router-dom'
 
 export default function CareersPage() {
@@ -20,16 +20,24 @@ export default function CareersPage() {
 
     return (
         <>
-            <h1>Roles We're Hiring For</h1>
-            <Container text>
-                <Header as='h3'>Business Operations Analyst</Header>
-                <button><Link to='/careers/apply'>Apply</Link></button>
+            <h2>Roles We're Hiring For</h2>
+            <Card style={{ width: '80vw', textAlign: 'left', padding: '5%' }}>
+                <Header as='h3'>
+                    Business Operations Analyst
+                    <Link className="apply-link" to='/careers/apply'>Apply</Link>
+                </Header>
                 {
                     jobDescription
-                    ? jobDescription.map((line, idx) => <p key={idx}>{line}</p>)
+                    ? jobDescription.map((line, idx) => {
+                        return (
+                            line.startsWith("--")
+                            ? <li key={idx}>{line.slice(2)}</li>
+                            : <p key={idx}>{line}</p>
+                        )   
+                    })
                     : null
                 }
-            </Container>
+            </Card>
         </>
     )
 }

@@ -40,9 +40,25 @@ export default function ApplyPage() {
         })
     }
 
+    function handleQuit() {
+        const PATCH_OPTIONS = {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({role: 'disgruntled former employee'})
+        }
+        fetch('/api/v1/apply', PATCH_OPTIONS)
+        .then(res => res.json())
+        .then(data => {
+            setUser(data)
+            console.log(data)
+        })
+    }
+
+
     // Patch existing user with role 'admin'
-    function handleSubmitExistingUser(e) {
-        e.preventDefault()
+    function handleSubmitExistingUser() {
         const PATCH_OPTIONS = {
             method: 'PATCH',
             headers: {
@@ -53,6 +69,7 @@ export default function ApplyPage() {
         fetch('/api/v1/apply', PATCH_OPTIONS)
         .then(res => res.json())
         .then(data => {
+            setUser(data)
             console.log(data)
         })
     }
@@ -60,17 +77,23 @@ export default function ApplyPage() {
     // If user account already exists and has role 'admin'
     if (user && user.role === 'admin') {
         return (
-            <p>Hey, {user.first_name}! You've already applied and been accepted. Get back to work!</p>
+            <>
+                <p>Hey, {user.first_name}! Thank you for being a part of the Lentility team!</p>
+                <button onClick={handleQuit}>Quit</button>
+            </>
+        )
+    } else if (user && user.role === 'disgruntled former employee') {
+        return (
+            <>
+                <p>Sorry to see you go. We hope you'll consider rejoining the Lentility team as a Business Operations Analyst!</p>
+                <button onClick={handleSubmitExistingUser}>Withdraw Resignation</button>
+            </>
         )
     } else if (user) {
         return (
             <>
                 <p>Hey, {user.first_name}! Love Lentility as much as we do? Join our team as a Business Operations Analyst!</p>
-                <Form onSubmit={handleSubmitExistingUser}>
-                    <Form.Field>
-                        <Input type='submit' value='Apply' />
-                    </Form.Field>
-                </Form>
+                <button onClick={handleSubmitExistingUser}>Apply</button>
             </>
             
         )   

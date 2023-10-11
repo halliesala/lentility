@@ -12,6 +12,7 @@ import ApplyPage from './components/ApplyPage.jsx';
 import CareersOutlet from './components/CareersOutlet.jsx';
 import SignUpPage from './components/SignUpPage.jsx';
 import CartPage from './components/CartPage.jsx';
+import CheckoutPage from './components/CheckoutPage.jsx';
 
 const router = createBrowserRouter([
   {
@@ -36,6 +37,11 @@ const router = createBrowserRouter([
       {
         path: "cart",
         element: <CartPage />,
+        loader: cartLoader,
+      },
+      {
+        path: "checkout",
+        element: <CheckoutPage />,
         loader: cartLoader,
       },
       {

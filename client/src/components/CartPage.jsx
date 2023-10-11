@@ -1,17 +1,12 @@
-import { useLoaderData } from "react-router-dom"
+import { useLoaderData, Link } from "react-router-dom"
 
 export default function CartPage() {
     const { cart } = useLoaderData()
-
-    function refreshPrices() {
-        console.log("TODO: refresh prices")
-    }
 
 
     return (
         <>
             <h2>Cart</h2>
-            <button onClick={refreshPrices}>Refresh Prices</button>
             <table>
                 <thead>
                     <tr>
@@ -39,6 +34,7 @@ export default function CartPage() {
                     }
                 </tbody>
             </table>
+            <Link to="/checkout">Continue to Checkout</Link>
         </>
     )
 }

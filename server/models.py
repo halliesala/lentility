@@ -21,6 +21,7 @@ class Product(db.Model, SerializerMixin):
     supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id'))
     supplier_sku = db.Column(db.String, nullable=False)
     image_link = db.Column(db.String)
+    price_preset = db.Column(db.Float)
 
     # Relationships #
     canonical_product = db.relationship('CanonicalProduct', back_populates='products')
@@ -42,7 +43,11 @@ class Product(db.Model, SerializerMixin):
 class CanonicalProduct(db.Model, SerializerMixin):
     __tablename__ = 'canonical_products'
 
-    serialize_only = ('id', 'manufacturer_id', 'manufacturer_sku', 'name', 'description', 'image_link', 'price_preset', 'products.id', 'products.supplier.name', 'products.supplier_sku', 'suppliers.id', 'suppliers.name', 'manufacturer.id', 'manufacturer.name')
+    serialize_only = ('id', 'manufacturer_id', 'manufacturer_sku', 'name', 
+                      'description', 'image_link', 'price_preset', 'products.id', 
+                      'products.supplier.name', 'products.supplier_sku', 
+                      'suppliers.id', 'suppliers.name', 'manufacturer.id', 
+                      'manufacturer.name')
     id = db.Column(db.Integer, primary_key=True)
     manufacturer_id = db.Column(db.Integer, db.ForeignKey('manufacturers.id'))
     manufacturer_sku = db.Column(db.String, nullable=False)

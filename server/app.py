@@ -136,8 +136,8 @@ class Apply(Resource):
                 return response
     def patch(self):
         data = request.json
-        user = User.query.filter_by(email=data['email']).first() 
-        user.role = 'admin'
+        user = User.query.filter_by(id=session['user_id']).first() 
+        user.role = data['role']
         db.session.commit()
         response = user.to_dict(), 200
         print("Response: ", response)
@@ -176,8 +176,9 @@ class Signup(Resource):
                 last_name = data['last_name'],
                 is_primary = True,
             )
-            db.session.add(new_practice)
+            db.session.add(new_user)
             db.session.commit()
+            session['user_id'] = new_user.id
             response = new_user.to_dict(), 200
         print("Response: ", response)
         return response
@@ -236,8 +237,16 @@ class Cart(Resource):
             print("Response: ", response)
             return response
         # Get active order
-        orders = Order.query.filter_by(practice_id=user.practice_id)
-        active_cart = max(orders, key=lambda o: o.id)
+        active_cart = Order.query.filter_by(practice_id=user.practice_id, status='in_cart').first()
+        if not active_cart:
+            # Create new order
+            active_cart = Order(
+                practice_id = user.practice_id,
+                created_time = datetime.now(),
+                status = 'in_cart',
+            )
+            db.session.add(active_cart)
+            db.session.commit()
         order_items = OrderItem.query.filter_by(order_id=active_cart.id).all()
         response = [oi.to_dict() for oi in order_items], 200
         print("Response: ", response)
@@ -260,8 +269,16 @@ class Cart(Resource):
             print("Response: ", response)
             return response
         # Get active order
-        orders = Order.query.filter_by(practice_id=user.practice_id)
-        active_cart = max(orders, key=lambda o: o.id)
+        active_cart = Order.query.filter_by(practice_id=user.practice_id, status='in_cart').first()
+        if not active_cart:
+            # Create new order
+            active_cart = Order(
+                practice_id = user.practice_id,
+                created_time = datetime.now(),
+                status = 'in_cart',
+            )
+            db.session.add(active_cart)
+            db.session.commit()
         # Check if item already exists in cart
         existing_item = OrderItem.query.filter_by(order_id=active_cart.id, canonical_product_id=data['canonical_product_id']).first()
         if existing_item:
@@ -283,6 +300,10 @@ class Cart(Resource):
             print("Response: ", response)
             return response
 api.add_resource(Cart, '/cart')
+
+class OptimizeCart(Resource):
+    pass
+api.add_resource(OptimizeCart, '/optimizecart')
 
 # Server will run on port 5555
 if __name__ == "__main__":

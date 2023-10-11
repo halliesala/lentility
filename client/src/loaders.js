@@ -18,3 +18,4 @@ export async function cartLoader() {
     console.log("CART LOADER: ", cart)
     return { cart }
 }
+

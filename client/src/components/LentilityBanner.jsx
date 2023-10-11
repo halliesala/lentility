@@ -1,35 +1,53 @@
-import { Link } from "react-router-dom"
+import { Link } from "react-router-dom";
+import { Image } from "semantic-ui-react";
 
-export default function LentilityBanner({user, setUser}) {
-
-    function handleLogout() {
-        fetch('/api/v1/logout', {'method': 'DELETE'})
-        .then(resp => {
-            if (resp.ok) {
-                setUser(null)
-            }
-        })
-    }
-    
+export default function LentilityBanner({ user, setUser }) {
     return (
         <div>
-            <Link to='/'><h1>Lentility</h1></Link>
+            <div className='logo-name-div'>
+                <Image className='logo' src='/lentility_icon.png' alt="Lentility logo" size="small"  />
+                <Link to='/'><h1>Lentility</h1></Link>
+            </div>
             {
                 user
-                ? (
-                    <>
-                        <nav>
-                            <span>Hi, {user.first_name} {user.last_name}</span>
-                            <button onClick={handleLogout}>Logout</button>
-                        </nav>
-                        <nav>
-                            <Link to='/shop'>Shop</Link>
-                            <Link to='/cart'>Cart</Link>
-                        </nav>
-                    </>
-                    )
-                : <Link to='login'>Login</Link>
+                    ? <LoggedInLinks user={user} setUser={setUser} />
+                    : <LoggedOutLinks />
             }
         </div>
+    )
+
+}
+
+function LoggedInLinks({ user, setUser }) {
+
+    function handleLogout() {
+        fetch('/api/v1/logout', { 'method': 'DELETE' })
+            .then(resp => {
+                if (resp.ok) {
+                    setUser(null)
+                }
+            })
+    }
+
+    return (
+        <>
+            <nav>
+                <span>Hi, {user.first_name} {user.last_name}!</span>
+            </nav>
+            <nav className="header-nav">
+                <Link className="nav-bar-link" to='/shop'>Shop</Link>
+                <Link className="nav-bar-link" to='/cart'>Cart</Link>
+                <button className="nav-bar-link logout-button" onClick={handleLogout}>Logout</button>
+            </nav>
+        </>
+    )
+}
+
+function LoggedOutLinks() {
+    return (
+        <nav className="header-nav">
+            <Link className="nav-bar-link" to='login'>Login</Link>
+            <Link className="nav-bar-link" to='signup'>Sign Up</Link>
+        </nav>
     )
 }

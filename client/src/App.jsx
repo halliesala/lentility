@@ -13,11 +13,11 @@ function App() {
 
   return (
     <>
-      <p>----------HEADER----------</p>
+      {/* <p>----------HEADER----------</p> */}
       <LentilityBanner user={user} setUser={setUser} />
-      <p>----------OUTLET----------</p>
+      {/* <p>----------OUTLET----------</p> */}
       <Outlet context={{user, setUser}}/>
-      <p>----------FOOTER----------</p>
+      {/* <p>----------FOOTER----------</p> */}
       <Footer />
     </>
   )

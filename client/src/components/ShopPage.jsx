@@ -1,5 +1,5 @@
 import { Link, useLoaderData, useOutletContext } from 'react-router-dom';
-import { Card, Input, Form } from 'semantic-ui-react';
+import { Card, Input, Form, Grid } from 'semantic-ui-react';
 import { useState } from 'react';
 import ProductCard from './ProductCard';
 
@@ -13,11 +13,17 @@ export default function ShopPage() {
 
     return (
         <>
-            {
-                canonicalProducts.map(cp => {
-                    return <ProductCard key={cp.id} user={user} cp={cp} />
-                })
-            }
+            <Grid columns={4}>
+                {
+                    canonicalProducts.map(cp => {
+                        return (
+                            <Grid.Column key={cp.id}>
+                                <ProductCard user={user} cp={cp} />
+                            </Grid.Column>
+                        )
+                    })
+                }
+            </Grid>
         </>
     )
 }
