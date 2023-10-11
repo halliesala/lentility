@@ -1,5 +1,5 @@
 import { useLoaderData, useOutletContext } from 'react-router-dom';
-import { Grid } from 'semantic-ui-react';
+import { Grid, Pagination } from 'semantic-ui-react';
 import { useState } from 'react';
 import ProductCard from './ProductCard';
 import SearchBar from './SearchBar';
@@ -8,12 +8,17 @@ import SearchTag from './SearchTag';
 export default function ShopPage() {
     const { canonicalProducts } = useLoaderData()
     const { user, setUser } = useOutletContext()
+    const [itemsPerPage, setItemsPerPage] = useState(16)
 
     // All active search bar queries
     const [searchTerms, setSearchTerms] = useState([])
 
     // Current search bar query
     const [searchBarContent, setSearchBarContent] = useState('')
+
+    // Pagination
+    const [activePage, setActivePage] = useState(1)  
+    const totalPages = Math.ceil(canonicalProducts.length / itemsPerPage)
 
     console.log("Shop Page", canonicalProducts)
     
@@ -24,6 +29,11 @@ export default function ShopPage() {
 
     return (
         <>
+            <PaginationExamplePagination 
+                activePage={activePage} 
+                setActivePage={setActivePage} 
+                totalPages={totalPages}
+            />
             <SearchBar 
                 searchBarContent={searchBarContent} 
                 setSearchBarContent={setSearchBarContent} 
@@ -57,8 +67,24 @@ export default function ShopPage() {
                             </Grid.Column>
                         )
                     })
+                    .slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage)
                 }
             </Grid>
         </>
+    )
+}
+
+function PaginationExamplePagination({ activePage, setActivePage, totalPages}) {
+
+    function handlePageChange(e) {
+        setActivePage(e.target.getAttribute('value'))
+    }
+
+    return (
+        <Pagination 
+            onPageChange={handlePageChange}
+            totalPages={totalPages} 
+            activePage={activePage} 
+        />
     )
 }
