@@ -1,10 +1,11 @@
 import { Button, Form, Grid, Input } from "semantic-ui-react";
 import { useState } from "react";
 
-export default function SearchBar({ searchBarContent, setSearchBarContent, searchTerms, setSearchTerms}) {
+export default function SearchBar({ searchBarContent, setSearchBarContent, searchTerms, setSearchTerms, resetPagination}) {
 
     function handleChange(e) {
         setSearchBarContent(e.target.value)
+        resetPagination()
     }
     
     function addSearchTerm(e) {

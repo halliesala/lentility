@@ -1,39 +1,41 @@
 import { useLoaderData, Link } from "react-router-dom"
+import { Table, Icon, Grid } from "semantic-ui-react"
+import CartRow from "./CartRow"
 
 export default function CartPage() {
     const { cart } = useLoaderData()
+    
+
+    console.log(cart)
+
+    if (cart.length === 0) {
+        return (
+            <p>There are no items in your cart. Time to <Link to="/shop">restock?</Link></p>
+        )
+    }
 
 
     return (
         <>
             <h2>Cart</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
-                        <th>Extended Price</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <Table celled>
+                <Table.Header>
+                    <Table.Row
+                        
+                    >
+                        <Table.HeaderCell>Product</Table.HeaderCell>
+                        <Table.HeaderCell>Quantity</Table.HeaderCell>
+                        <Table.HeaderCell>Price</Table.HeaderCell>
+                        <Table.HeaderCell>Extended Price</Table.HeaderCell>
+                        <Table.HeaderCell>Actions</Table.HeaderCell>
+                    </Table.Row>
+                </Table.Header>
+                <Table.Body>
                     {
-                        // Format numbers to two decimal places
-                        cart.map(item => {
-                            return (
-                                <tr key={item.id}>
-                                    <td>
-                                        <p>{item.canonical_product.manufacturer.name} {item.canonical_product.name}</p>
-                                    </td>
-                                    <td>{item.quantity}</td>
-                                    <td>{item.price ? item.price.toFixed(2) : <i>pending</i>}</td>
-                                    <td>{item.price ? (item.price * item.quantity).toFixed(2): <i>pending</i>}</td>
-                                </tr>
-                            )
-                        })
+                        cart.map(item => <CartRow key={item.id} item={item} />)
                     }
-                </tbody>
-            </table>
+                </Table.Body>
+            </Table>
             <Link to="/checkout">Continue to Checkout</Link>
         </>
     )

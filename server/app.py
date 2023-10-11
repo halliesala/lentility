@@ -222,6 +222,22 @@ class OrderItemsByOrderID(Resource):
         return [oi.to_dict() for oi in order_items], 200
 api.add_resource(OrderItemsByOrderID, '/order=<int:order_id>/items')
 
+class OrderItemByID(Resource):
+    def patch(self, id):
+        print("Route ORDERITEM ...")
+        data = request.json
+        order_item = OrderItem.query.filter_by(id=id).first()
+        if not order_item:
+            response = {'message': 'Order item not found'}, 401
+            print("Response: ", response)
+            return response
+        order_item.quantity = data['quantity']
+        db.session.commit()
+        response = order_item.to_dict(), 200
+        print("Response: ", response)
+        return response
+api.add_resource(OrderItemByID, '/orderitem=<int:id>')
+
 class Cart(Resource):
     # curl -i -X GET http://localhost:5555/api/v1/cart
     def get(self):
