@@ -106,7 +106,7 @@ export default function SignUpPage() {
                     <label>Password</label>
                     <Input type='password' name='password' onChange={handleChange} value={formData.password} />
                 </Form.Field>
-                <input type='submit' value='Apply' />
+                <input type='submit' value='Sign Up' />
             </Form>
         </>
     )

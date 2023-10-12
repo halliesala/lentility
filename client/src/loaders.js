@@ -29,3 +29,10 @@ export async function supplierAccountsLoader() {
     return { supplierAccounts, suppliers }
 }
 
+// export async function pricesLoader({ params }) {
+//     const response = await fetch(`/api/v1/getpriceinfo/cp=${params.cp_id}/practice=${params.practice_id}`)
+//     const priceInfo = await response.json()
+//     console.log("PRICES LOADER: ", priceInfo)
+//     return { priceInfo }
+// }
+

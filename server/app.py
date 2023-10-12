@@ -358,6 +358,49 @@ class GetCartPrices(Resource):
         return products_list, 200
 api.add_resource(GetCartPrices, '/getcartprices/order=<int:order_id>')
 
+# ----- PRICES ----- #
+# Gets practice-specific price for a supplier product
+def getPriceInfo(product_id, practice_id):
+    print("Calling function getPriceInfo ...")
+
+    product = models.Product.query.filter_by(id=product_id).first()
+    supplier = product.supplier
+    # print("SUPPLIER: ", supplier.name, supplier.id)
+    
+    supplier_account = models.SupplierAccount.query.filter_by(practice_id=practice_id, supplier_id=supplier.id).first()
+    # print("SUPPLIER ACCOUNT: ", supplier_account)
+    if not supplier_account:
+        return "practice is missing this supplier"
+
+    vendor_prefix = f"{product.supplier.name.replace(' ', '').capitalize()}"
+    
+    vendor_product_class = getattr(models, f"{vendor_prefix}Product")
+    vendor_product = vendor_product_class.query.filter_by(sku=product.supplier_sku).first()
+    
+    vendor_user_class= getattr(models, f"{vendor_prefix}User")
+    vendor_user = vendor_user_class.query.filter_by(username=supplier_account.username, password=supplier_account.password).first()
+    
+    return {
+        'preset': vendor_product.price_preset, 
+        'multiplier': vendor_user.price_multiplier, 
+        'price': vendor_product.price_preset * vendor_user.price_multiplier,
+        'stock': vendor_product.stock, # num items in stock
+        'days_to_ship': vendor_user.days_to_ship, 
+        'free_shipping_threshold': vendor_user.free_shipping_threshold, 
+        'shipping_cost': vendor_user.shipping_cost
+    }
+# Gets practice-specific prices for all supplier products in a canonical product
+def getAllProductPriceInfo(cp_id, practice_id):
+    print("Calling function getAllProductPriceInfo ...")
+    products = models.Product.query.filter_by(canonical_product_id=cp_id).all()
+    info = {p.supplier.name: getPriceInfo(p.id, practice_id) for p in products}
+    return info
+# curl -i -X GET http://localhost:5555/api/v1/getpriceinfo/cp=1/practice=14
+class GetPriceInfo(Resource):
+    def get(self, cp_id, practice_id):
+        print("Route GETPRICEINFO ...")
+        return getAllProductPriceInfo(cp_id, practice_id), 200
+api.add_resource(GetPriceInfo, '/getpriceinfo/cp=<int:cp_id>/practice=<int:practice_id>')
             
 class SupplierAccountsByID(Resource):
     def get(self, user_id):

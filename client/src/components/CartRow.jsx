@@ -1,5 +1,6 @@
 import { Icon, Table, Input, Form } from 'semantic-ui-react';
 import { useState } from 'react';
+import SupplierProductsTable from './SupplierProductsTable';
 
 export default function CartRow({ item }) {
 
@@ -41,6 +42,7 @@ export default function CartRow({ item }) {
         <Table.Row >
             <Table.Cell>
                 <p>{item.canonical_product.manufacturer.name} {item.canonical_product.name}</p>
+                <SupplierProductsTable order_item={item} />
             </Table.Cell>
             <Table.Cell>
                 <Form>
