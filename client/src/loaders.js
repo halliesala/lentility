@@ -16,7 +16,11 @@ export async function cartLoader() {
     const response = await fetch("/api/v1/cart")
     const cart = await response.json()
     console.log("CART LOADER: ", cart)
-    return { cart }
+    // Load prices for each item in cart
+    const response2 = await fetch("/api/v1/getcartprices")
+    const prices = await response2.json()
+    console.log("PRICES LOADER: ", prices)
+    return { cart, prices }
 }
 
 export async function supplierAccountsLoader() {

@@ -344,19 +344,6 @@ class OptimizeCart(Resource):
     pass
 api.add_resource(OptimizeCart, '/optimizecart')
 
-class GetCartPrices(Resource):
-    def get(self, order_id):
-        order_items = OrderItem.query.filter_by(order_id = order_id)
-        products_list = []
-        for oi in order_items:
-            # Get products from canonical
-            products = oi.canonical_product.products
-            products_list.append({
-                'order_item_id': oi.id, 
-                'supplier_products': [p.to_dict() for p in products],
-            })
-        return products_list, 200
-api.add_resource(GetCartPrices, '/getcartprices/order=<int:order_id>')
 
 # ----- PRICES ----- #
 # Gets practice-specific price for a supplier product
@@ -401,7 +388,35 @@ class GetPriceInfo(Resource):
         print("Route GETPRICEINFO ...")
         return getAllProductPriceInfo(cp_id, practice_id), 200
 api.add_resource(GetPriceInfo, '/getpriceinfo/cp=<int:cp_id>/practice=<int:practice_id>')
-            
+
+
+class GetCartPrices(Resource):
+    def get(self):
+        if 'user_id' not in session:
+            response = {'message': 'No user logged in'}, 401
+            print("Response: ", response)
+            return response
+        user = User.query.filter_by(id=session['user_id']).first()
+        if user.practice_id is None:
+            response = {'message': "User must belong to a practice"}, 401
+            print("Response: ", response)
+            return response
+        # Get active order
+        active_cart = Order.query.filter_by(practice_id=user.practice_id, status='in_cart').first()
+        if not active_cart:
+            # Create new order
+            active_cart = Order(
+                practice_id = user.practice_id,
+                created_time = datetime.now(),
+                status = 'in_cart',
+            )
+            db.session.add(active_cart)
+            db.session.commit()
+        order_items = OrderItem.query.filter_by(order_id=active_cart.id).all()
+        prices = {oi.id: getAllProductPriceInfo(oi.canonical_product_id, user.practice_id) for oi in order_items}
+        return prices, 200
+api.add_resource(GetCartPrices, '/getcartprices')
+          
 class SupplierAccountsByID(Resource):
     def get(self, user_id):
         user = User.query.filter_by(id=user_id).first()

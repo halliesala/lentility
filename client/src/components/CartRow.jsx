@@ -2,9 +2,10 @@ import { Icon, Table, Input, Form } from 'semantic-ui-react';
 import { useState } from 'react';
 import SupplierProductsTable from './SupplierProductsTable';
 
-export default function CartRow({ item }) {
+export default function CartRow({ item, prices }) {
 
     console.log("CART ROW ITEM", item)
+    console.log("CART ROW PRICES", prices)
 
     const [quantity, setQuantity] = useState(item.quantity)
     const [isDeleted, setIsDeleted] = useState(false)
@@ -42,7 +43,7 @@ export default function CartRow({ item }) {
         <Table.Row >
             <Table.Cell>
                 <p>{item.canonical_product.manufacturer.name} {item.canonical_product.name}</p>
-                <SupplierProductsTable order_item={item} />
+                <SupplierProductsTable order_item={item} prices={prices} />
             </Table.Cell>
             <Table.Cell>
                 <Form>

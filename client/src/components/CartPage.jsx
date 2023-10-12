@@ -3,18 +3,13 @@ import { Table } from "semantic-ui-react";
 import CartRow from "./CartRow";
 
 export default function CartPage() {
-    const { cart } = useLoaderData()
+    const { cart, prices } = useLoaderData()
     
-
-    console.log(cart)
-
     if (cart.length === 0) {
         return (
             <p>There are no items in your cart. Time to <Link to="/shop">restock?</Link></p>
         )
     }
-
-    
 
 
     return (
@@ -32,7 +27,7 @@ export default function CartPage() {
                 </Table.Header>
                 <Table.Body>
                     {
-                        cart.map(item => <CartRow key={item.id} item={item} />)
+                        cart.map(item => <CartRow key={item.id} item={item} prices={prices[item.id]} />)
                     }
                 </Table.Body>
             </Table>
