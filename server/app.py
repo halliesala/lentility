@@ -455,15 +455,15 @@ def getOptimizedByPrice(user_id):
     best_fulfillment = min(fulfillment_prices_dict, key=lambda x: fulfillment_prices_dict[x]['total'])
     print("Best fulfillment:", best_fulfillment)
 
-    fulfilled_product_to_order_item_map = {}
+    order_item_to_fulfilled_product_map = {}
     for product_id in best_fulfillment:
         product = models.Product.query.filter_by(id=product_id).first()
         order_item = models.OrderItem.query.filter_by(order_id=order_id, canonical_product_id=product.canonical_product_id).first()
-        fulfilled_product_to_order_item_map[order_item.id] = product_id
+        order_item_to_fulfilled_product_map[order_item.id] = product_id
 
-    # print(fulfilled_product_to_order_item_map, fulfillment_prices_dict[best_fulfillment]['total'])
+    # print(order_item_to_fulfilled_product_map, fulfillment_prices_dict[best_fulfillment]['total'])
 
-    return {'fulfilled_product_to_order_item_map': fulfilled_product_to_order_item_map, 'info': fulfillment_prices_dict[best_fulfillment]}
+    return {'order_item_to_fulfilled_product_map': order_item_to_fulfilled_product_map, 'info': fulfillment_prices_dict[best_fulfillment]}
 
 # ----- API ENDPOINTS ----- #
 # curl -i -X GET http://localhost:5555/api/v1/getpriceinfo/cp=1/practice=14
@@ -501,9 +501,9 @@ class GetCartPrices(Resource):
 api.add_resource(GetCartPrices, '/getcartprices')
 
 class OptimizeCart(Resource):
-    # Get user, practice, cart
+    # Get optimization info without fulfilling order items
     def get(self):
-        print("Route OPTIMIZECART ...")
+        print("Route OPTIMIZECART (GET) ...")
 
         # Return error if no user logged in or user doesn't belong to practice
         user = User.query.filter_by(id=session['user_id']).first()
@@ -521,15 +521,43 @@ class OptimizeCart(Resource):
     
 
         best_fulfillment_info = getOptimizedByPrice(user.id)
-
-        
-        
-
         return {'user': user.to_dict(), 
                 'practice': practice.to_dict(), 
                 'cart': active_cart.to_dict(), 
                 'order_items': [oi.to_dict() for oi in order_items], 
                 'best_fulfillment_info': best_fulfillment_info}, 200
+    # Fulfill order items
+    # curl -i -X POST -H "Content-Type: application/json" -d '{}' http://localhost:5555/api/v1/optimizecart
+    def post(self):
+        print("Route OPTIMIZECART (POST) ...")
+        # Return error if no user logged in or user doesn't belong to practice
+        user = User.query.filter_by(id=session['user_id']).first()
+        if user is None:
+            response = {'message': 'No user logged in'}, 401
+            print("Response: ", response)
+            return response
+        practice = user.practice
+        if practice is None:
+            response = {'message': "User must belong to a practice"}, 401
+            print("Response: ", response)
+            return response
+        active_cart = Order.query.filter_by(practice_id=practice.id, status='in_cart').first()
+        order_items = OrderItem.query.filter_by(order_id=active_cart.id).all()
+        best_fulfillment_info = getOptimizedByPrice(user.id)
+        for oi in order_items:
+            try:
+                fulfilled_by_product_id = best_fulfillment_info['order_item_to_fulfilled_product_map'][oi.id]
+                oi.fulfilled_by_product_id = fulfilled_by_product_id
+                oi.price = getPriceInfo(fulfilled_by_product_id, practice.id)['price']
+            except:
+                # No connected vendor can fulfill this item; it will need to be cancelled
+                pass
+        db.session.commit()
+        response = {'order_items': [oi.to_dict() for oi in order_items], 'best_fulfillment_info': best_fulfillment_info}, 200
+        print(response)
+        return response, 200
+
+
 api.add_resource(OptimizeCart, '/optimizecart')
 
 

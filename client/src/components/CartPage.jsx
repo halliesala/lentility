@@ -11,19 +11,25 @@ export default function CartPage() {
         )
     }
 
-    
+    function optimizeCart() {
+        console.log("Optimizing cart...")
+        fetch('/api/v1/optimizecart', {method: 'POST'})
+            .then(resp => resp.json())
+            .then(data => console.log(data))
+    }
 
 
     return (
         <>
             <h2>Cart</h2>
             <p style={{color:'red'}}>order_id: {order.id}</p>
+            <button onClick={optimizeCart}>Optimize My Cart</button>
             <Table celled>
                 <Table.Header>
                     <Table.Row>
                         <Table.HeaderCell>Product</Table.HeaderCell>
                         <Table.HeaderCell>Quantity</Table.HeaderCell>
-                        <Table.HeaderCell>Price</Table.HeaderCell>
+                        <Table.HeaderCell>Your Best Price</Table.HeaderCell>
                         <Table.HeaderCell>Extended Price</Table.HeaderCell>
                         <Table.HeaderCell>Actions</Table.HeaderCell>
                     </Table.Row>
