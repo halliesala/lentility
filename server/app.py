@@ -287,7 +287,7 @@ class Cart(Resource):
             db.session.add(active_cart)
             db.session.commit()
         order_items = OrderItem.query.filter_by(order_id=active_cart.id).all()
-        response = [oi.to_dict() for oi in order_items], 200
+        response = {'order': active_cart.to_dict(), 'order_items': [oi.to_dict() for oi in order_items]}, 200
         print("Response: ", response)
         return response
 
@@ -368,6 +368,8 @@ def getPriceInfo(product_id, practice_id):
     vendor_user = vendor_user_class.query.filter_by(username=supplier_account.username, password=supplier_account.password).first()
     
     return {
+        'product_id': product_id,
+        'supplier_sku': product.supplier_sku,
         'preset': vendor_product.price_preset, 
         'multiplier': vendor_user.price_multiplier, 
         'price': vendor_product.price_preset * vendor_user.price_multiplier,
