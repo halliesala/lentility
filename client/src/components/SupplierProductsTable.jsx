@@ -42,7 +42,7 @@ export default function SupplierProductsTable({order_item, prices}) {
                             order_item.canonical_product.suppliers
                             .map(s => {
                                 return (
-                                    <Table.Row key={s.id} >
+                                    <Table.Row key={s.id} disabled={!priceInfo[s.name].price}>
                                         <Table.Cell>
                                             <p>{s.name}</p>
                                             <p>{priceInfo?.[s.name]?.supplier_sku}</p>

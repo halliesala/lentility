@@ -9,6 +9,7 @@ from models import db, User, Product, CanonicalProduct, Order, Practice, OrderIt
 import models
 from datetime import datetime
 from random import randint, choice, randrange
+import itertools
 
 # ----- ENVIRONMENT VARIABLES ----- #
 load_dotenv()
@@ -340,15 +341,60 @@ class Cart(Resource):
             return response
 api.add_resource(Cart, '/cart')
 
+
 class OptimizeCart(Resource):
-    pass
+    # Get user, practice, cart
+    def get(self):
+        print("Route OPTIMIZECART ...")
+
+        # Return error if no user logged in or user doesn't belong to practice
+        user = User.query.filter_by(id=session['user_id']).first()
+        if user is None:
+            response = {'message': 'No user logged in'}, 401
+            print("Response: ", response)
+            return response
+        practice = user.practice
+        if practice is None:
+            response = {'message': "User must belong to a practice"}, 401
+            print("Response: ", response)
+            return response
+        active_cart = Order.query.filter_by(practice_id=practice.id, status='in_cart').first()
+
+        # Get order items and prices
+        order_items = OrderItem.query.filter_by(order_id=active_cart.id).all()
+        prices = {oi.id: getAllProductPriceInfo(oi.canonical_product_id, user.practice_id) for oi in order_items}
+
+        # Check all possible cart combinations to find lowest overall price
+        possible_fulfillments = {oi.id: [p.id for p in oi.canonical_product.products] 
+                                 for oi in order_items}
+        possible_carts = []
+        for possible_cart in itertools.product(*possible_fulfillments.values()):
+            possible_carts.append(possible_cart)
+
+
+        
+        # for oi in order_items:
+        #     print("Checking order item: ", oi.id)
+        #     for (vendor_name, product_info) in prices[oi.id].items():
+        #         print("Vendor:", vendor_name)
+        #         print("Product info:", product_info)
+
+        
+        
+
+        return {'user': user.to_dict(), 
+                'practice': practice.to_dict(), 
+                'cart': active_cart.to_dict(), 
+                'order_items': [oi.to_dict() for oi in order_items], 
+                'prices': prices}, 200
+
 api.add_resource(OptimizeCart, '/optimizecart')
 
 
 # ----- PRICES ----- #
 # Gets practice-specific price for a supplier product
 def getPriceInfo(product_id, practice_id):
-    print("Calling function getPriceInfo ...")
+    # print("Calling function getPriceInfo ...")
 
     product = models.Product.query.filter_by(id=product_id).first()
     supplier = product.supplier
@@ -357,7 +403,11 @@ def getPriceInfo(product_id, practice_id):
     supplier_account = models.SupplierAccount.query.filter_by(practice_id=practice_id, supplier_id=supplier.id).first()
     # print("SUPPLIER ACCOUNT: ", supplier_account)
     if not supplier_account:
-        return "practice is missing this supplier"
+        return {
+            'message': "practice is missing this supplier",
+            'product_id': product_id,
+            'supplier_sku': product.supplier_sku,
+        }
 
     vendor_prefix = f"{product.supplier.name.replace(' ', '').capitalize()}"
     
@@ -365,6 +415,8 @@ def getPriceInfo(product_id, practice_id):
     vendor_product = vendor_product_class.query.filter_by(sku=product.supplier_sku).first()
     
     vendor_user_class= getattr(models, f"{vendor_prefix}User")
+    
+    
     vendor_user = vendor_user_class.query.filter_by(username=supplier_account.username, password=supplier_account.password).first()
     
     return {
@@ -380,7 +432,7 @@ def getPriceInfo(product_id, practice_id):
     }
 # Gets practice-specific prices for all supplier products in a canonical product
 def getAllProductPriceInfo(cp_id, practice_id):
-    print("Calling function getAllProductPriceInfo ...")
+    # print("Calling function getAllProductPriceInfo ...")
     products = models.Product.query.filter_by(canonical_product_id=cp_id).all()
     info = {p.supplier.name: getPriceInfo(p.id, practice_id) for p in products}
     return info

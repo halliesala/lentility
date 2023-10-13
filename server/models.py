@@ -138,7 +138,7 @@ class Practice(db.Model, SerializerMixin):
     addresses = db.relationship('Address', back_populates='practice')
     orders = db.relationship('Order', back_populates='practice')
     payment_methods = db.relationship('PaymentMethod', back_populates='practice')
-
+    
 
 class Address(db.Model, SerializerMixin):
     __tablename__ = 'addresses'
