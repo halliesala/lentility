@@ -2,7 +2,7 @@ from app import app, getAllProductPriceInfo, getPriceInfo
 import models
 import itertools
 
-def getBestFulfillmentInfo(user_id):
+def getOptimizedByPrice(user_id):
 
     user = models.User.query.filter_by(id=user_id).first()
 
@@ -79,7 +79,7 @@ def getBestFulfillmentInfo(user_id):
 
 if __name__ == '__main__':
     with app.app_context(): 
-        print(getBestFulfillmentInfo(26))
+        print(getOptimizedByPrice(26))
 
         
 

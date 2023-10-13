@@ -342,56 +342,10 @@ class Cart(Resource):
 api.add_resource(Cart, '/cart')
 
 
-class OptimizeCart(Resource):
-    # Get user, practice, cart
-    def get(self):
-        print("Route OPTIMIZECART ...")
 
-        # Return error if no user logged in or user doesn't belong to practice
-        user = User.query.filter_by(id=session['user_id']).first()
-        if user is None:
-            response = {'message': 'No user logged in'}, 401
-            print("Response: ", response)
-            return response
-        practice = user.practice
-        if practice is None:
-            response = {'message': "User must belong to a practice"}, 401
-            print("Response: ", response)
-            return response
-        active_cart = Order.query.filter_by(practice_id=practice.id, status='in_cart').first()
+# ----- PRICES AND CART OPTIMIZATION----- #
 
-        # Get order items and prices
-        order_items = OrderItem.query.filter_by(order_id=active_cart.id).all()
-        prices = {oi.id: getAllProductPriceInfo(oi.canonical_product_id, user.practice_id) for oi in order_items}
-
-        # Check all possible cart combinations to find lowest overall price
-        possible_fulfillments = {oi.id: [p.id for p in oi.canonical_product.products] 
-                                 for oi in order_items}
-        possible_carts = []
-        for possible_cart in itertools.product(*possible_fulfillments.values()):
-            possible_carts.append(possible_cart)
-
-
-        
-        # for oi in order_items:
-        #     print("Checking order item: ", oi.id)
-        #     for (vendor_name, product_info) in prices[oi.id].items():
-        #         print("Vendor:", vendor_name)
-        #         print("Product info:", product_info)
-
-        
-        
-
-        return {'user': user.to_dict(), 
-                'practice': practice.to_dict(), 
-                'cart': active_cart.to_dict(), 
-                'order_items': [oi.to_dict() for oi in order_items], 
-                'prices': prices}, 200
-
-api.add_resource(OptimizeCart, '/optimizecart')
-
-
-# ----- PRICES ----- #
+# ----- HELPER FUNCTIONS ----- #
 # Gets practice-specific price for a supplier product
 def getPriceInfo(product_id, practice_id):
     # print("Calling function getPriceInfo ...")
@@ -436,13 +390,88 @@ def getAllProductPriceInfo(cp_id, practice_id):
     products = models.Product.query.filter_by(canonical_product_id=cp_id).all()
     info = {p.supplier.name: getPriceInfo(p.id, practice_id) for p in products}
     return info
+# Optimizes cart by total price
+def getOptimizedByPrice(user_id):
+
+    user = models.User.query.filter_by(id=user_id).first()
+
+    practice_id = user.practice_id
+    order_id = models.Order.query.filter_by(practice_id=practice_id, status='in_cart').first().id
+    
+    # Get cart -- #89  is Thursday Test Practice's active cart
+    cart = models.Order.query.filter_by(id=order_id).first()
+
+    # Get prices for all products in cart
+    fulfillment_options = {}
+    for item in cart.order_items:
+        fulfillment_options[item.id] = getAllProductPriceInfo(item.canonical_product_id, practice_id=practice_id)
+
+    connected_fulfillments = {}
+    # Get all combinations of product fulfillments
+    for (order_item_id, options) in fulfillment_options.items():
+        for (vendor_name, product_info) in options.items():
+            if 'price' in product_info:
+                connected_fulfillments[order_item_id] = connected_fulfillments.get(order_item_id, []) + [product_info['product_id']]
+
+
+    # Get Cartesian product of all fulfillments
+    all_fulfillments = list(itertools.product(*connected_fulfillments.values()))
+    # print(all_fulfillments)
+
+    # For each possible fulfillment, calculate total price
+    fulfillment_prices = []
+    fulfillment_prices_dict = {}
+    for fulfillment in all_fulfillments:
+        total = 0
+        subtotal = 0
+        shipping = 0
+        vendor_subtotals = {}
+        vendor_free_shipping_threshold = {}
+        vendor_shipping_below_threshold = {}
+        vendor_shipping = {}
+        for product_id in fulfillment:
+            product = models.Product.query.filter_by(id=product_id).first()
+            supplier = product.supplier
+            price_info = getPriceInfo(product_id, practice_id=practice_id)
+            subtotal += price_info['price']
+            vendor_subtotals[supplier.name] = vendor_subtotals.get(supplier.name, 0) + price_info['price']
+            vendor_shipping_below_threshold[supplier.name] = price_info['shipping_cost']
+            vendor_free_shipping_threshold[supplier.name] = price_info['free_shipping_threshold']
+        for (vendor, subtotal) in vendor_subtotals.items():
+            # calculate shipping cost
+            if subtotal < vendor_free_shipping_threshold[vendor]:
+                vendor_shipping[vendor] = vendor_shipping_below_threshold[vendor]
+                shipping += vendor_shipping[vendor]
+        total = subtotal + shipping
+        fulfillment_prices.append((fulfillment, total, subtotal, shipping, vendor_subtotals, vendor_shipping_below_threshold))
+        fulfillment_prices_dict[fulfillment] = {'total': total, 'subtotal': subtotal, 'shipping': shipping, 'vendor_subtotals': vendor_subtotals, 'vendor_shipping_below_threshold': vendor_shipping_below_threshold}
+    fulfillment_prices.sort(key=lambda x: x[1])
+    # for fp in fulfillment_prices:
+        # print(fp)
+        
+
+
+    # For now, 'best' fulfillment is the one with the lowest total price
+    best_fulfillment = min(fulfillment_prices_dict, key=lambda x: fulfillment_prices_dict[x]['total'])
+    print("Best fulfillment:", best_fulfillment)
+
+    fulfilled_product_to_order_item_map = {}
+    for product_id in best_fulfillment:
+        product = models.Product.query.filter_by(id=product_id).first()
+        order_item = models.OrderItem.query.filter_by(order_id=order_id, canonical_product_id=product.canonical_product_id).first()
+        fulfilled_product_to_order_item_map[order_item.id] = product_id
+
+    # print(fulfilled_product_to_order_item_map, fulfillment_prices_dict[best_fulfillment]['total'])
+
+    return {'fulfilled_product_to_order_item_map': fulfilled_product_to_order_item_map, 'info': fulfillment_prices_dict[best_fulfillment]}
+
+# ----- API ENDPOINTS ----- #
 # curl -i -X GET http://localhost:5555/api/v1/getpriceinfo/cp=1/practice=14
 class GetPriceInfo(Resource):
     def get(self, cp_id, practice_id):
         print("Route GETPRICEINFO ...")
         return getAllProductPriceInfo(cp_id, practice_id), 200
 api.add_resource(GetPriceInfo, '/getpriceinfo/cp=<int:cp_id>/practice=<int:practice_id>')
-
 
 class GetCartPrices(Resource):
     def get(self):
@@ -470,7 +499,42 @@ class GetCartPrices(Resource):
         prices = {oi.id: getAllProductPriceInfo(oi.canonical_product_id, user.practice_id) for oi in order_items}
         return prices, 200
 api.add_resource(GetCartPrices, '/getcartprices')
-          
+
+class OptimizeCart(Resource):
+    # Get user, practice, cart
+    def get(self):
+        print("Route OPTIMIZECART ...")
+
+        # Return error if no user logged in or user doesn't belong to practice
+        user = User.query.filter_by(id=session['user_id']).first()
+        if user is None:
+            response = {'message': 'No user logged in'}, 401
+            print("Response: ", response)
+            return response
+        practice = user.practice
+        if practice is None:
+            response = {'message': "User must belong to a practice"}, 401
+            print("Response: ", response)
+            return response
+        active_cart = Order.query.filter_by(practice_id=practice.id, status='in_cart').first()
+        order_items = OrderItem.query.filter_by(order_id=active_cart.id).all()
+    
+
+        best_fulfillment_info = getOptimizedByPrice(user.id)
+
+        
+        
+
+        return {'user': user.to_dict(), 
+                'practice': practice.to_dict(), 
+                'cart': active_cart.to_dict(), 
+                'order_items': [oi.to_dict() for oi in order_items], 
+                'best_fulfillment_info': best_fulfillment_info}, 200
+api.add_resource(OptimizeCart, '/optimizecart')
+
+
+# ----- SUPPLIER ACCOUNTS AND CONNECT VENDOR ----- #
+
 class SupplierAccountsByID(Resource):
     def get(self, user_id):
         user = User.query.filter_by(id=user_id).first()
