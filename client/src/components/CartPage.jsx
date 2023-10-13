@@ -1,29 +1,55 @@
 import { useLoaderData, Link } from "react-router-dom";
-import { Table } from "semantic-ui-react";
+import { Table, Loader, Segment, Dimmer, Image } from "semantic-ui-react";
 import CartRow from "./CartRow";
+import { useState, useEffect } from "react";
 
 export default function CartPage() {
     const { order, order_items, prices } = useLoaderData()
+    const [orderItems, setOrderItems] = useState(order_items)
+    const [loading, setLoading] = useState(false)
     
-    if (order_items.length === 0) {
+
+    if (orderItems.length === 0) {
         return (
             <p>There are no items in your cart. Time to <Link to="/shop">restock?</Link></p>
         )
     }
 
     function optimizeCart() {
+        setLoading(true)
+        const start = Date.now()
+        console.log("Start optimization: ", start)
         console.log("Optimizing cart...")
-        fetch('/api/v1/optimizecart', {method: 'POST'})
+        fetch('/api/v1/optimizecart', { method: 'POST' })
             .then(resp => resp.json())
-            .then(data => console.log(data))
+            .then(data => {
+                const end = Date.now()
+                console.log("Optimization complete: ", end-start, "ms");
+                if (end - start < 3) {
+                    console.log("Setting timeout")
+                    
+                }
+                console.log(data)
+                setOrderItems(data[0].order_items)
+                setLoading(false)
+            })
     }
 
+    if (loading) {
+        return (
+            <>
+                <p>Optimizing your cart...</p>
+            </>
+
+        )
+    }
 
     return (
         <>
             <h2>Cart</h2>
-            <p style={{color:'red'}}>order_id: {order.id}</p>
+            <p style={{ color: 'red' }}>order_id: {order.id}</p>
             <button onClick={optimizeCart}>Optimize My Cart</button>
+            
             <Table celled>
                 <Table.Header>
                     <Table.Row>
@@ -36,7 +62,7 @@ export default function CartPage() {
                 </Table.Header>
                 <Table.Body>
                     {
-                        order_items.map(item => <CartRow key={item.id} item={item} prices={prices[item.id]} />)
+                        orderItems.map(item => <CartRow key={item.id} item={item} prices={prices[item.id]} />)
                     }
                 </Table.Body>
             </Table>
