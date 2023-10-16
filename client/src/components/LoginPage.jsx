@@ -33,6 +33,7 @@ export default function LoginPage() {
     }
 
     // If logged in, display welcome message
+    
     return (
         <>
             <p>You are logged in as {user.email}</p>

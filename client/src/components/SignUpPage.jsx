@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { Form, Input } from 'semantic-ui-react';
 
 
 export default function SignUpPage() {
     const {user, setUser} = useOutletContext()
     const [existingPractice, setExistingPractice] = useState(false)
+
+    const navigate = useNavigate()
 
     const BLANK_FORM_DATA = {
         practice_name: "",
@@ -59,7 +61,7 @@ export default function SignUpPage() {
     if (user) {
         return (
             <>
-                <h2>Sign Up</h2>
+                <h2>Welcome to Lentility, {user.first_name}!</h2>
                 <p>Create additional user accounts for your practice via Account Settings.</p>
             </>
         )
@@ -68,7 +70,7 @@ export default function SignUpPage() {
         return (
             <>
                 <h2>Sign Up</h2>
-                <button onClick={handleClick}>My office is new to Lentility.</button>
+                <button className='blue-link-button' onClick={handleClick}>My office is new to Lentility.</button>
                 <p>Create additional user accounts for your practice via Account Settings.</p>
             </>
         )
@@ -84,7 +86,7 @@ export default function SignUpPage() {
                 ? <p>Error creating account.</p>
                 : null
             }
-            <button onClick={handleClick}>My office already has a Lentility account.</button>
+            <button className='blue-link-button' onClick={handleClick}>My office already has a Lentility account.</button>
             <Form onSubmit={handleSubmit}>
                 <Form.Field>
                     <label>Practice Name</label>

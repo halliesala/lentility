@@ -8,6 +8,16 @@ export default function OrdersPage() {
 
     useEffect(() => setMenuActive("orders"), [])
 
+    if (orders.length === 0) {
+        return (
+            <>
+                <Card style={{ width: '80vw', textAlign: 'center', padding: '5%', color: 'grey'}} >
+                    <Card.Header as='h3'>No orders to display</Card.Header>
+                </Card>
+            </>
+        )
+    }
+
     return (
         <>
             {
