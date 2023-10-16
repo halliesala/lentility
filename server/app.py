@@ -5,7 +5,9 @@ from flask_restful import Api, Resource
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from models import db, User, Product, CanonicalProduct, Order, Practice, OrderItem, SupplierAccount, Supplier, Address, PaymentMethod
+from models import (db, User, Product, CanonicalProduct, Order, 
+                    Practice, OrderItem, SupplierAccount, Supplier, 
+                    Address, PaymentMethod, VendorOrder)
 import models
 from datetime import datetime
 from random import randint, choice, randrange
@@ -277,6 +279,18 @@ class Suppliers(Resource):
     def get(self):
         return [s.to_dict() for s in Supplier.query.all()], 200
 api.add_resource(Suppliers, '/suppliers')
+
+class VendorOrdersByOrderID(Resource):
+    def get(self, order_id):
+        vendor_orders = VendorOrder.query.filter_by(order_id=order_id).all()
+        return [vo.to_dict() for vo in vendor_orders], 200
+api.add_resource(VendorOrdersByOrderID, '/order=<int:order_id>/vendororders')
+
+class OrderItemByVendorOrderID(Resource):
+    def get(self, vendor_order_id):
+        order_items = OrderItem.query.filter_by(vendor_order_id=vendor_order_id).all()
+        return [oi.to_dict() for oi in order_items], 200
+api.add_resource(OrderItemByVendorOrderID, '/vendororder=<int:vendor_order_id>/items')
 
 # ----- CART ----- #
 class OrderItemsByOrderID(Resource):

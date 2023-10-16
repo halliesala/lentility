@@ -43,14 +43,28 @@ export async function ordersLoader() {
     const orders = await response.json()
     console.log("ORDERS LOADER -- ORDERS: ", orders)
     // Get order items for each order
-    const orderItems = {}
+    const orderItemsByVO = {}
+    const vendorOrdersDict = {}
     for (const o of orders) {
-        const orderItemResponse = await fetch(`/api/v1/order=${o.id}/items`)
-        const orderItem = await orderItemResponse.json()
-        orderItems[o.id] = orderItem
+        const vendorOrderResponse = await fetch(`/api/v1/order=${o.id}/vendororders`)
+        const vendorOrders = await vendorOrderResponse.json()
+        vendorOrdersDict[o.id] = vendorOrders
+
+        // Get order items for each order
+        // const orderItemResponse = await fetch(`/api/v1/order=${o.id}/items`)
+        // const orderItem = await orderItemResponse.json()
+        // orderItems[o.id] = orderItem
+
+        // Get order items for each vendor order
+        for (const vo of vendorOrders) {
+            const orderItemResponse = await fetch(`/api/v1/vendororder=${vo.id}/items`)
+            const orderItems = await orderItemResponse.json()
+            orderItemsByVO[vo.id] = orderItems
+        }
     }
-    console.log("ORDERS LOADER -- ORDERITEMS: ", orderItems)
-    return { orders, orderItems }
+    console.log("ORDERS LOADER -- ORDERITEMS: ", orderItemsByVO)
+    console.log("ORDERS LOADER -- VENDORORDERS: ", vendorOrdersDict)
+    return { orders, vendorOrdersDict, orderItemsByVO }
 }
 
 export async function checkoutLoader() {
