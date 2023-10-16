@@ -37,10 +37,28 @@ export async function supplierAccountsLoader() {
     return { supplierAccounts, suppliers }
 }
 
-// export async function pricesLoader({ params }) {
-//     const response = await fetch(`/api/v1/getpriceinfo/cp=${params.cp_id}/practice=${params.practice_id}`)
-//     const priceInfo = await response.json()
-//     console.log("PRICES LOADER: ", priceInfo)
-//     return { priceInfo }
-// }
+export async function ordersLoader() {
+    // Get orders for logged-in practice
+    const response = await fetch('/api/v1/ordersbyloggedinpractice')
+    const orders = await response.json()
+    console.log("ORDERS LOADER -- ORDERS: ", orders)
+    // Get order items for each order
+    const orderItems = {}
+    for (const o of orders) {
+        const orderItemResponse = await fetch(`/api/v1/order=${o.id}/items`)
+        const orderItem = await orderItemResponse.json()
+        orderItems[o.id] = orderItem
+    }
+    console.log("ORDERS LOADER -- ORDERITEMS: ", orderItems)
+    return { orders, orderItems }
+}
 
+export async function checkoutLoader() {
+    const response = await fetch('/api/v1/addressesbyloggedinpractice')
+    const addresses = await response.json()
+    console.log("CHECKOUT LOADER -- ADDRESSES:", addresses)
+    const response2 = await fetch('api/v1/paymentmethodsbyloggedinpractice')
+    const paymentMethods = await response2.json()
+    console.log("CHECKOUT LOADER -- PAYMENTMETHODS:", paymentMethods)
+    return { addresses, paymentMethods }
+}

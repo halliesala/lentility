@@ -464,6 +464,8 @@ class SeedDB:
                 password = sa.password,
                 price_multiplier = randint(80, 120) * 0.01 if not supplier.preferred else 1.00,
                 days_to_ship = randint(1, 5),
+                free_shipping_threshold = choice([0, 49, 99, 99, 199]),
+                shipping_cost = choice([9.99, 19.99])
             )
             m.db.session.add(vu)
         m.db.session.commit()

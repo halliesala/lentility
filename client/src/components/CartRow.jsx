@@ -1,11 +1,15 @@
-import { Icon, Table, Input, Form } from 'semantic-ui-react';
+import { Icon, Table, Input, Form, Label } from 'semantic-ui-react';
 import { useState } from 'react';
 import SupplierProductsTable from './SupplierProductsTable';
 
 export default function CartRow({ item, prices }) {
 
+    const [showFulfillmentExplanation, setShowFulfillmentExplanation] = useState(false)
+
     console.log("CART ROW ITEM", item)
-    console.log("CART ROW PRICES", prices)
+    // console.log("CART ROW PRICES", prices)
+    console.log("FULFILLED BY SUPPLIER NAME: ", item.fulfilled_by_product?.supplier.name)
+
 
     const [quantity, setQuantity] = useState(item.quantity)
     const [isDeleted, setIsDeleted] = useState(false)
@@ -54,7 +58,10 @@ export default function CartRow({ item, prices }) {
                     </Form.Field>
                 </Form>                
             </Table.Cell>
-            <Table.Cell>{item.price ? item.price.toFixed(2) : <i>pending</i>}</Table.Cell>
+            <Table.Cell>
+                <p>{item.price ? item.price.toFixed(2) : <i>pending</i>}</p>
+                <small>{item.fulfilled_by_product?.supplier.name}</small>
+            </Table.Cell>
             <Table.Cell>
                 {item.price ? (item.price * item.quantity).toFixed(2): <i>pending</i>}
             </Table.Cell>

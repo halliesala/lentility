@@ -143,7 +143,7 @@ class Practice(db.Model, SerializerMixin):
 class Address(db.Model, SerializerMixin):
     __tablename__ = 'addresses'
 
-    serialize_only = ('id', 'practice_id', 'line_1')
+    serialize_only = ('id', 'practice_id', 'line_1', 'line_2', 'city', 'us_state', 'zip_code', 'is_primary_shipping')
 
     id = db.Column(db.Integer, primary_key=True)
     practice_id = db.Column(db.Integer, db.ForeignKey('practices.id'))
@@ -203,7 +203,15 @@ class User(db.Model, SerializerMixin):
 class Order(db.Model, SerializerMixin):
     __tablename__ = 'orders'
 
-    serialize_rules = ('-practice', '-placed_by_user', '-payment_method', '-shipping_addresses', '-order_items', '-vendor_orders')
+    # serialize_rules = ('-practice', '-placed_by_user', '-payment_method', '-shipping_addresses', '-order_items', '-vendor_orders')
+    serialize_only = ('id', 'practice_id', 'placed_by_user_id', 
+                      'created_time', 'placed_time', 'status', 
+                      'payment_method_id', 'shipping_address_id', 
+                      'placed_by_user.id', 'placed_by_user.first_name', 
+                      'placed_by_user.last_name', 'shipping_address.id',
+                      'shipping_address.line_1', 'shipping_address.line_2',
+                      'shipping_address.city', 'shipping_address.us_state',
+                      'shipping_address.zip_code')
 
     id = db.Column(db.Integer, primary_key=True)
     practice_id = db.Column(db.Integer, db.ForeignKey('practices.id'))
@@ -227,7 +235,14 @@ class Order(db.Model, SerializerMixin):
 class OrderItem(db.Model, SerializerMixin):
     __tablename__ = 'order_items'
 
-    serialize_only = ('id', 'order_id', 'fulfilled_by_product_id', 'created_time', 'canonical_product_id', 'canonical_product.name', 'canonical_product.manufacturer.name', 'quantity', 'price', 'vendor_order_id')
+    serialize_only = ('id', 'order_id', 'fulfilled_by_product_id', 
+                      'created_time', 'canonical_product_id', 
+                      'canonical_product.name', 
+                      'canonical_product.manufacturer.name', 
+                      'quantity', 'price', 'vendor_order_id', 
+                      'fulfilled_by_product.id', 
+                      'fulfilled_by_product.supplier.name', 
+                      'fulfilled_by_product.supplier_sku')
 
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'))
@@ -243,6 +258,8 @@ class OrderItem(db.Model, SerializerMixin):
     fulfilled_by_product = db.relationship('Product', foreign_keys=[fulfilled_by_product_id], post_update=True)
     canonical_product = db.relationship('CanonicalProduct', foreign_keys=[canonical_product_id], post_update=True)
     vendor_order = db.relationship('VendorOrder', back_populates='order_items')
+
+
 
 class VendorOrder(db.Model, SerializerMixin):
     __tablename__ = 'vendor_orders'

@@ -5,7 +5,7 @@ from flask_restful import Api, Resource
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from models import db, User, Product, CanonicalProduct, Order, Practice, OrderItem, SupplierAccount, Supplier
+from models import db, User, Product, CanonicalProduct, Order, Practice, OrderItem, SupplierAccount, Supplier, Address, PaymentMethod
 import models
 from datetime import datetime
 from random import randint, choice, randrange
@@ -219,6 +219,59 @@ class Orders(Resource):
         orders = Order.query.all()
         return [o.to_dict() for o in orders], 200
 api.add_resource(Orders, '/orders')
+
+
+class OrdersByLoggedInPractice(Resource):
+    def get(self):
+        print("Route ORDERSBYLOGGEDINPRACTICE ...")
+        print("Getting orders ...")
+        if 'user_id' not in session:
+            response = {'message': 'No user logged in'}, 401
+            print("Response: ", response)
+            return response
+        user = User.query.filter_by(id=session['user_id']).first()
+        if user.practice_id is None:
+            response = {'message': "User must belong to a practice"}, 401
+            print("Response: ", response)
+            return response
+        orders = Order.query.filter_by(practice_id=user.practice_id).all()
+        return [o.to_dict() for o in orders if o.status != 'in_cart'], 200
+api.add_resource(OrdersByLoggedInPractice, '/ordersbyloggedinpractice')
+
+
+class AddressesByLoggedInPractice(Resource):
+    def get(self):
+        print("Route ADDRESSESBYLOGGEDINPRACTICE ...")
+        print("Getting addresses ...")
+        if 'user_id' not in session:
+            response = {'message': 'No user logged in'}, 401
+            print("Response: ", response)
+            return response
+        user = User.query.filter_by(id=session['user_id']).first()
+        if user.practice_id is None:
+            response = {'message': "User must belong to a practice"}, 401
+            print("Response: ", response)
+            return response
+        addresses = Address.query.filter_by(practice_id=user.practice_id).all()
+        return [a.to_dict() for a in addresses], 200
+api.add_resource(AddressesByLoggedInPractice, '/addressesbyloggedinpractice')
+
+class PaymentMethodsByLoggedInPractice(Resource):
+    def get(self):
+        print("Route PAYMENTMETHODSBYLOGGEDINPRACTICE ...")
+        print("Getting payment methods ...")
+        if 'user_id' not in session:
+            response = {'message': 'No user logged in'}, 401
+            print("Response: ", response)
+            return response
+        user = User.query.filter_by(id=session['user_id']).first()
+        if user.practice_id is None:
+            response = {'message': "User must belong to a practice"}, 401
+            print("Response: ", response)
+            return response
+        payment_methods = PaymentMethod.query.filter_by(practice_id=user.practice_id).all()
+        return [pm.to_dict() for pm in payment_methods], 200
+api.add_resource(PaymentMethodsByLoggedInPractice, '/paymentmethodsbyloggedinpractice')
 
 class Suppliers(Resource):
     def get(self):
@@ -439,6 +492,11 @@ def getOptimizedByPrice(user_id):
             vendor_free_shipping_threshold[supplier.name] = price_info['free_shipping_threshold']
         for (vendor, subtotal) in vendor_subtotals.items():
             # calculate shipping cost
+            # TODO -- debug. 
+            # One of these is sometimes 'None', in which case we get an error
+            # When I wrap in 'try-except', we get illegal fulfillments (unconnected vendors)
+            # Ah, NO -- we're just showing 'Connect Vendor' where the vendor is already connected
+            # And we're incorrectly getting vendor_free_shipping_threshold. Why?
             if subtotal < vendor_free_shipping_threshold[vendor]:
                 vendor_shipping[vendor] = vendor_shipping_below_threshold[vendor]
                 shipping += vendor_shipping[vendor]
@@ -555,7 +613,7 @@ class OptimizeCart(Resource):
         db.session.commit()
         response = {'order_items': [oi.to_dict() for oi in order_items], 'best_fulfillment_info': best_fulfillment_info}, 200
         print(response)
-        return response, 200
+        return response
 
 
 api.add_resource(OptimizeCart, '/optimizecart')
