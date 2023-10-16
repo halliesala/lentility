@@ -41,7 +41,7 @@ export default function CartPage() {
     
     if (loading) {
         return (
-            <Segment>
+            <Segment style={{height: '10vh'}}>
                 <Loader active={true}>Optimizing cart...</Loader>
             </Segment>
 
@@ -55,7 +55,6 @@ export default function CartPage() {
         <>
             <h2>Cart</h2>
             <p style={{ color: 'red' }}>order_id: {order.id}</p>
-            <button onClick={optimizeCart}>Optimize My Cart</button>
             
             <Table celled>
                 <Table.Header>
@@ -73,7 +72,10 @@ export default function CartPage() {
                     }
                 </Table.Body>
             </Table>
-            <Link to="/checkout">Continue to Checkout</Link>
+            <button onClick={optimizeCart}>Optimize My Cart</button>
+            <div>
+                <Link to="/checkout">Continue to Checkout</Link>
+            </div>
         </>
     )
 }

@@ -1,18 +1,25 @@
 import { useOutletContext } from "react-router-dom";
 import { Outlet, Link } from "react-router-dom";
 import { Menu } from "semantic-ui-react";
+import { useState } from 'react';
 
 export default function AccountOutlet() {
     const { user, setUser } = useOutletContext();
 
+    const [menuActive, setMenuActive] = useState()
+
     return (
         <>
-          <Menu>
-            <Link to='/account/vendors'>Manage Vendors</Link>
-            <Link to='/account/orders'>View Orders</Link>
+          <Menu style={{width: '80vw'}}> 
+            <Menu.Item active={menuActive==='vendors'} link>
+              <Link to='/account/vendors'>Vendors</Link>
+            </Menu.Item>
+            <Menu.Item active={menuActive==='orders'} >
+              <Link to='/account/orders'>Orders</Link>
+            </Menu.Item>
           </Menu>
 
-          <Outlet context={{user, setUser}} />
+          <Outlet context={{user, setUser, setMenuActive}} />
         </>
     )
 }

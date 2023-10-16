@@ -28,7 +28,11 @@ export default function ConnectVendorRow({ supplier, connectedVendorIds } ) {
     return (
         <Table.Row>
             <Table.Cell>
-                <Label color='green' ribbon>Preferred</Label>
+                {
+                    supplier.preferred
+                    ? <Label color='green' ribbon>Preferred</Label>
+                    : null
+                }
                 {supplier.name}
             </Table.Cell>
             <Table.Cell>

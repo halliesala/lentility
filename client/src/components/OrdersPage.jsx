@@ -1,8 +1,12 @@
-import { useLoaderData } from "react-router-dom"
+import { useEffect } from "react";
+import { useLoaderData, useOutletContext } from "react-router-dom"
 import { Card } from 'semantic-ui-react';
 
 export default function OrdersPage() {
     const { orders, vendorOrdersDict, orderItemsByVO } = useLoaderData()
+    const { setMenuActive } = useOutletContext();
+
+    useEffect(() => setMenuActive("orders"), [])
 
     return (
         <>

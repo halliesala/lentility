@@ -1,10 +1,15 @@
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, useOutletContext } from "react-router-dom";
 import { Icon, Label, Table } from "semantic-ui-react";
 import ConnectVendorRow from "./ConnectVendorRow";
+import { useEffect } from "react";
 
 export default function ManageVendorsPage() {
 
     const { supplierAccounts, suppliers } = useLoaderData();
+    const { setMenuActive } = useOutletContext();
+
+    useEffect(() => setMenuActive("vendors"), [])
+
 
 
 
