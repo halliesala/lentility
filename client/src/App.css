@@ -100,3 +100,9 @@ footer {
   transform: scale(1.2);
 }
 
+.chat-window {
+  position: fixed;
+  bottom: 1em;
+  right: 1em;
+  /* padding: 5px; */
+}

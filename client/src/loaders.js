@@ -76,3 +76,11 @@ export async function checkoutLoader() {
     console.log("CHECKOUT LOADER -- PAYMENTMETHODS:", paymentMethods)
     return { addresses, paymentMethods }
 }
+
+export async function addressesLoader() {
+    const response = await fetch('/api/v1/addressesbyloggedinpractice')
+    const addresses = await response.json()
+    console.log("ADDRESSES LOADER: ", addresses)
+    return { addresses }
+}
+

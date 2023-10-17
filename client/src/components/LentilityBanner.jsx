@@ -5,6 +5,9 @@ export default function LentilityBanner({ user, setUser }) {
     return (
         <div>
             <div className='logo-name-div'>
+                {/* <Link to='/'>
+                    <Image className='logo' src='/lentility_logo.png' alt="Lentility logo" size="huge"  />
+                </Link> */}
                 <Image className='logo' src='/lentility_icon.png' alt="Lentility logo" size="small"  />
                 <Link to='/'><h1>Lentility</h1></Link>
             </div>

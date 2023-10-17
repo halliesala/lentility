@@ -1,5 +1,5 @@
 import { useLoaderData, Link } from "react-router-dom";
-import { Table, Loader, Segment } from "semantic-ui-react";
+import { Table, Loader, Segment, Popup, Icon } from "semantic-ui-react";
 import CartRow from "./CartRow";
 import { useState } from "react";
 
@@ -61,7 +61,14 @@ export default function CartPage() {
                     <Table.Row>
                         <Table.HeaderCell>Product</Table.HeaderCell>
                         <Table.HeaderCell>Quantity</Table.HeaderCell>
-                        <Table.HeaderCell>Optimized Price</Table.HeaderCell>
+                        <Table.HeaderCell>Optimized Price
+                            <Popup trigger={<Icon circular name='info' />}>
+                                <Popup.Content>
+                                    Your cart is optimized for maximum savings. 
+                                    Prices may change as you add or remove items. 
+                                </Popup.Content>
+                            </Popup>
+                        </Table.HeaderCell>
                         <Table.HeaderCell>Extended Price</Table.HeaderCell>
                         <Table.HeaderCell>Actions</Table.HeaderCell>
                     </Table.Row>

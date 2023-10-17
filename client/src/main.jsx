@@ -6,7 +6,7 @@ import './index.css'
 import LoginPage from './components/LoginPage.jsx';
 import ErrorPage from './components/ErrorPage.jsx';
 import ShopPage from './components/ShopPage.jsx'
-import { canonicalProductsLoader, sessionLoader, cartLoader, supplierAccountsLoader, ordersLoader, checkoutLoader } from './loaders.js';
+import { canonicalProductsLoader, sessionLoader, cartLoader, supplierAccountsLoader, ordersLoader, checkoutLoader, addressesLoader } from './loaders.js';
 import CareersPage from './components/CareersPage.jsx';
 import ApplyPage from './components/ApplyPage.jsx';
 import CareersOutlet from './components/CareersOutlet.jsx';
@@ -17,6 +17,8 @@ import Logout from './components/Logout.jsx';
 import AccountOutlet from './components/AccountOutlet.jsx';
 import ManageVendorsPage from './components/ManageVendorsPage.jsx';
 import OrdersPage from './components/OrdersPage.jsx';
+import AddressesPage from './components/AddressesPage.jsx';
+import PaymentMethods from './components/PaymentMethods.jsx';
 
 const router = createBrowserRouter([
   {
@@ -65,6 +67,15 @@ const router = createBrowserRouter([
             path: "orders",
             element: <OrdersPage />,
             loader: ordersLoader,
+          },
+          {
+            path: "addresses",
+            element: <AddressesPage />,
+            loader: addressesLoader,
+          },
+          {
+            path: "paymentmethods",
+            element: <PaymentMethods />,
           }
         ]
       },
