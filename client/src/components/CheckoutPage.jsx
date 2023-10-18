@@ -5,6 +5,8 @@ import { Form } from "semantic-ui-react";
 export default function CheckoutPage() {
 
     const { addresses, paymentMethods } = useLoaderData();
+    const [orderPlaced, setOrderPlaced] = useState(false)
+    const [loading, setLoading] = useState(false)
 
     const primaryShippingAddress = addresses.find(a => a.is_primary_shipping)
     const primaryPaymentMethod = paymentMethods.find(pm => pm.is_primary)
@@ -14,7 +16,37 @@ export default function CheckoutPage() {
 
     function handleSubmit(e) {
         e.preventDefault()
-        console.log("TODO: submit order")
+        console.log("Placing order...")
+        setLoading(true)
+        const POST_OPTIONS = {
+            'method': 'POST',
+            'headers': {
+                'Content-Type': 'application/json'
+            },
+            'body': JSON.stringify({
+                'shipping_address_id': shippingAddress.id,
+                'payment_method_id': paymentMethod.id
+            })
+        }
+        fetch('/api/v1/placeorder', POST_OPTIONS)
+            .then(res => res.json())
+            .then(data => {
+                console.log(data)
+                setOrderPlaced(true)
+                setLoading(false)
+            })
+    }
+
+    if (loading) {
+        return (
+            <p>Loading ...</p>
+        )
+    }
+
+    if (orderPlaced) {
+        return (
+            <p>Your order has been placed!</p>
+        )
     }
 
     return (
