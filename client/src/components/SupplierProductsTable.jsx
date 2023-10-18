@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useOutletContext } from "react-router-dom"
-import { Icon, Table, Dimmer } from "semantic-ui-react"
+import { Icon, Table, Label } from "semantic-ui-react"
 
 export default function SupplierProductsTable({order_item, prices}) {
     const { user, setUser } = useOutletContext()
@@ -26,7 +26,7 @@ export default function SupplierProductsTable({order_item, prices}) {
             <button className='show-detail-button' onClick={() => setHideTable(!hideTable)}>{hideTable ? "Show Details" : "Hide Details"}</button>
             {/* <Icon name={hideTable ? 'angle double down' : 'angle double up'} className='show-detail-button' onClick={() => setHideTable(!hideTable)} hidden={hideTable} /> */}
             <div className='detail-div' hidden={hideTable}>
-                <Table celled >
+                <Table celled selectable >
                     <Table.Header>
                         <Table.Row>
                             <Table.HeaderCell>Supplier</Table.HeaderCell>
@@ -44,9 +44,8 @@ export default function SupplierProductsTable({order_item, prices}) {
                                 return (
                                     <Table.Row key={s.id} disabled={!priceInfo[s.name].price}>
                                         <Table.Cell>
-                                            <p>{s.name}</p>
-                                            <p>{priceInfo?.[s.name]?.supplier_sku}</p>
-                                            <p style={{color:'red'}}>product_id={priceInfo?.[s.name]?.product_id}</p>
+                                            {s.name} <small>{priceInfo?.[s.name]?.supplier_sku}</small>
+                                            {/* <p style={{color:'red'}}>product_id={priceInfo?.[s.name]?.product_id}</p> */}
                                         </Table.Cell>
                                         <Table.Cell>{(priceInfo?.[s.name]?.price)?.toFixed(2) ?? 'Connect Vendor'}</Table.Cell>
                                         <Table.Cell>{priceInfo?.[s.name]?.free_shipping_threshold ?? 'Connect Vendor'}</Table.Cell>

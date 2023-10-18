@@ -1,10 +1,12 @@
-import { Card, Input, Form } from 'semantic-ui-react';
+import { Card, Input, Form, Image, Label, Segment, Icon } from 'semantic-ui-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function ProductCard({ cp, user }) {
 
     const [quantity, setQuantity] = useState(1)
+
+    const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'brown', 'grey', 'black']
 
 
     function addToCart() {
@@ -26,23 +28,33 @@ export default function ProductCard({ cp, user }) {
         .then(data => {
             console.log(data)
         })
-
     }
 
     return (
-        <Card key={cp.id} >
-            <h2>{cp.name}</h2>
-            <h3>{cp.manufacturer.name}</h3>
-            <h3>{cp.manufacturer_sku}</h3>
-            <ul>
+        <Card key={cp.id} 
+            color={colors[cp.manufacturer.id]}
+            style={{ width: '40vh'}}
+        >
+            <Image 
+                fluid
+                src='/red_lentils.jpg' 
+                label={{
+                    color: colors[cp.manufacturer.id],
+                    content: cp.manufacturer.name,
+                    attached: 'top',
+                  }}>
+            </Image>
+            <Card.Header as='h2'>{cp.name}</Card.Header>
+            <Card.Meta>{cp.manufacturer_sku}</Card.Meta>
+            <div style={{height: '10vh'}}>
                 {
                     cp.products.map(p => {
                         return (
-                            <li key={p.id}>{p.supplier.name}</li>
+                            <Card.Description key={p.id}>{p.supplier.name}</Card.Description>
                         )
                     })
                 }
-            </ul>
+            </div>
             {
                 user
                     ? <button onClick={() => addToCart(cp.id)}>Quick Add</button>

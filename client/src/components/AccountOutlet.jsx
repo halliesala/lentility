@@ -23,6 +23,9 @@ export default function AccountOutlet() {
             <Menu.Item active={menuActive==='payment'} >
               <Link to='/account/paymentmethods'>Payment Methods</Link>
             </Menu.Item>
+            <Menu.Item active={menuActive==='stats'} >
+              <Link to='/account/stats'>Stats</Link>
+            </Menu.Item>
           </Menu>
 
           <Outlet context={{user, setUser, setMenuActive}} />

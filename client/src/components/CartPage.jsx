@@ -1,20 +1,34 @@
 import { useLoaderData, Link } from "react-router-dom";
 import { Table, Loader, Segment, Popup, Icon } from "semantic-ui-react";
 import CartRow from "./CartRow";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function CartPage() {
     const { order, order_items, prices } = useLoaderData()
     const [orderItems, setOrderItems] = useState(order_items)
     const [loading, setLoading] = useState(false)
+    const [fakeLoad, setFakeLoad] = useState(0)
+
+    // useEffect(() => {
+    //     setLoading(false)
+    //     const timer = setTimeout(() => {
+    //         setLoading(true);
+    //       }, 3000);
+
+    //       // Clear timer if the component is unmounted
+    //       return () => clearTimeout(timer);
+    // }, [fakeLoad])
     
+    function onTimeIn() {
+        console.log("Time in")
+        setLoading(false)
+    }
     
     
     function optimizeCart() {
         setLoading(true)
         const start = Date.now()
         console.log("Start optimization: ", start)
-        console.log("Optimizing cart...")
         fetch('/api/v1/optimizecart', { method: 'POST' })
         .then(resp => resp.json())
         .then(data => {
@@ -22,10 +36,12 @@ export default function CartPage() {
             console.log("Optimization complete: ", end-start, "ms");
             if (end - start < 3000) {
                 console.log("TODO: set timeout to 3000ms")
+                setTimeout(onTimeIn, 3000)
+            } else {
+                setLoading(false)
             }
             console.log(data)
             setOrderItems(data.order_items)
-            setLoading(false)
         })
     }
     
@@ -33,7 +49,7 @@ export default function CartPage() {
     if (orderItems.length === 0) {
         return (
             <>
-                <p style={{ color: 'red' }}>order_id: {order.id}</p>
+                {/* <p style={{ color: 'red' }}>order_id: {order.id}</p> */}
                 <p>There are no items in your cart. Time to <Link to="/shop">restock?</Link></p>
             </>
         )
@@ -54,7 +70,7 @@ export default function CartPage() {
     return (
         <>
             <h2>Cart</h2>
-            <p style={{ color: 'red' }}>order_id: {order.id}</p>
+            {/* <p style={{ color: 'red' }}>order_id: {order.id}</p> */}
             
             <Table celled>
                 <Table.Header>

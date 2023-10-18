@@ -19,6 +19,7 @@ import ManageVendorsPage from './components/ManageVendorsPage.jsx';
 import OrdersPage from './components/OrdersPage.jsx';
 import AddressesPage from './components/AddressesPage.jsx';
 import PaymentMethods from './components/PaymentMethods.jsx';
+import DataPage from './components/DataPage.jsx';
 
 const router = createBrowserRouter([
   {
@@ -76,6 +77,10 @@ const router = createBrowserRouter([
           {
             path: "paymentmethods",
             element: <PaymentMethods />,
+          },
+          {
+            path: "stats",
+            element: <DataPage />
           }
         ]
       },

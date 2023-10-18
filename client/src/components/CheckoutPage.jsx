@@ -7,12 +7,8 @@ export default function CheckoutPage() {
     const { addresses, paymentMethods } = useLoaderData();
     const [orderPlaced, setOrderPlaced] = useState(false)
     const [loading, setLoading] = useState(false)
-
-    const primaryShippingAddress = addresses.find(a => a.is_primary_shipping)
-    const primaryPaymentMethod = paymentMethods.find(pm => pm.is_primary)
-
-    const [shippingAddress, setShippingAddress] = useState(primaryShippingAddress)
-    const [paymentMethod, setPaymentMethod] = useState(primaryPaymentMethod)
+    const [shippingAddressID, setShippingAddressID] = useState(addresses.find(a => a.is_primary_shipping).id)
+    const [paymentMethod, setPaymentMethod] = useState(paymentMethods.find(pm => pm.is_primary).id)
 
     function handleSubmit(e) {
         e.preventDefault()
@@ -24,7 +20,7 @@ export default function CheckoutPage() {
                 'Content-Type': 'application/json'
             },
             'body': JSON.stringify({
-                'shipping_address_id': shippingAddress.id,
+                'shipping_address_id': shippingAddressID,
                 'payment_method_id': paymentMethod.id
             })
         }
@@ -49,6 +45,11 @@ export default function CheckoutPage() {
         )
     }
 
+    function handleShippingAddressChange(e) {
+        console.log("Changing shipping address id: ", e.target.value)
+        setShippingAddressID(e.target.value)
+    }
+
     return (
         <>
             <h2>Checkout</h2>
@@ -56,20 +57,16 @@ export default function CheckoutPage() {
                 <Form.Field>
                     <label>Shipping Address</label>
                     <select
-                        value={shippingAddress}
-                        onChange={(e) => setShippingAddress(e.target.value)}
+                        value={shippingAddressID}
+                        onChange={handleShippingAddressChange}
                     >
-                        {
-                            addresses.map(a => {
-                                return (
-                                    <option
-                                        key={a.id}
-                                        value={a}>
-                                        {a.line_1}{a.line_2 ? ' ' + a.line_2 : ''}, {a.city}, {a.us_state} {a.zip_code}
-                                    </option>
-                                )
-                            })
-                        }
+                        {addresses.map(a => {
+                            return (
+                                <option value={a.id} key={a.id}>
+                                    {a.line_1}{a.line_2 ? ' ' + a.line_2 : ''}, {a.city}, {a.us_state} {a.zip_code}
+                                </option>
+                            )
+                        })}
                     </select>
                 </Form.Field>
                 <Form.Field>
@@ -83,7 +80,7 @@ export default function CheckoutPage() {
                                 return (
                                     <option
                                         key={pm.id}
-                                        value={pm}
+                                        value={pm.id}
                                     >
                                         {pm.nickname}
                                     </option>
@@ -92,7 +89,7 @@ export default function CheckoutPage() {
                         }
                     </select>
                 </Form.Field>
-                <input type='submit' value='Confirm Order'/>
+                <input type='submit' value='Confirm Order' />
             </Form>
 
         </>

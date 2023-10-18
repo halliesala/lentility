@@ -36,8 +36,8 @@ function LoggedInLinks({ user, setUser }) {
         <>
             <nav>
                 <span>Hi, {user.first_name} {user.last_name}!</span>
-                <p style={{color: 'red'}}>user_id={user.id}</p>
-                <p style={{color: 'red'}}>practice_id={user.practice_id}</p>
+                {/* <p style={{color: 'red'}}>user_id={user.id}</p> */}
+                {/* <p style={{color: 'red'}}>practice_id={user.practice_id}</p> */}
             </nav>
             <nav className="header-nav">
                 <Link className="nav-bar-link" to='/shop'>Shop</Link>

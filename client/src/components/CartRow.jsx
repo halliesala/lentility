@@ -1,4 +1,4 @@
-import { Icon, Table, Input, Form, Popup } from 'semantic-ui-react';
+import { Icon, Table, Input, Form, Popup, Image } from 'semantic-ui-react';
 import { useState } from 'react';
 import SupplierProductsTable from './SupplierProductsTable';
 import { Link } from 'react-router-dom';
@@ -56,8 +56,9 @@ export default function CartRow({ item, prices }) {
         <Table.Row >
             <Table.Cell>
                 <p>{item.canonical_product.manufacturer.name} {item.canonical_product.name}</p>
-                <p style={{ color: 'red' }}>order_item_id={item.id}</p>
-                <p style={{ color: 'red' }}>canonical_product_id={item.canonical_product_id}</p>
+                <Image size='tiny' src='/red_lentils.jpg'/>
+                {/* <p style={{ color: 'red' }}>order_item_id={item.id}</p> */}
+                {/* <p style={{ color: 'red' }}>canonical_product_id={item.canonical_product_id}</p> */}
                 <SupplierProductsTable order_item={item} prices={prices} />
             </Table.Cell>
             <Table.Cell>

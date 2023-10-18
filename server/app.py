@@ -261,6 +261,35 @@ class AddressesByLoggedInPractice(Resource):
         return [a.to_dict() for a in addresses], 200
 api.add_resource(AddressesByLoggedInPractice, '/addressesbyloggedinpractice')
 
+# curl -i -X POST -H "Content-Type: application/json" -d '{"shipping_address_id": 2}' http://localhost:5555/api/v1/addshippingaddress
+class UpdatePrimaryShippingAddress(Resource):
+    def post(self):
+        print("Route UPDATESHIPPINGADDRESS ...")
+        # Contains shipping_address_id
+        data = request.json
+        # Get user, practice, and all shipping addresses
+        if 'user_id' not in session:
+            response = {'message': 'No user logged in'}, 401
+            print("Response: ", response)
+            return response
+        user = User.query.filter_by(id=session['user_id']).first()
+        if user.practice_id is None:
+            response = {'message': "User must belong to a practice"}, 401
+            print("Response: ", response)
+            return response
+        addresses = Address.query.filter_by(practice_id=user.practice_id).all()
+        # Set new primary and confirm no others are set to primary
+        for a in addresses:
+            if a.id == data['address_id']:
+                a.is_primary_shipping = True
+            else:
+                a.is_primary_shipping = False
+        db.session.commit()
+        response = [a.to_dict() for a in addresses], 200
+        print(response)
+        return response
+api.add_resource(UpdatePrimaryShippingAddress, '/updateprimaryshippingaddress')
+
 class PaymentMethodsByLoggedInPractice(Resource):
     def get(self):
         print("Route PAYMENTMETHODSBYLOGGEDINPRACTICE ...")
