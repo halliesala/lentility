@@ -1,10 +1,12 @@
 import { Icon, Table, Input, Form, Popup } from 'semantic-ui-react';
 import { useState } from 'react';
 import SupplierProductsTable from './SupplierProductsTable';
+import { Link } from 'react-router-dom';
 
 export default function CartRow({ item, prices }) {
 
     const [showFulfillmentExplanation, setShowFulfillmentExplanation] = useState(false)
+
 
     console.log("CART ROW ITEM", item)
     // console.log("CART ROW PRICES", prices)
@@ -13,6 +15,13 @@ export default function CartRow({ item, prices }) {
 
     const [quantity, setQuantity] = useState(item.quantity)
     const [isDeleted, setIsDeleted] = useState(false)
+
+    // If no prices are available, item is cancellable
+    const connectedVendors = []
+    const allVendors = Object.keys(prices)
+    for (const [key, val] of Object.entries(prices)) {
+        if (val.price) connectedVendors.push(key)
+    }
 
     function updateQuantity(e) {
         // Prevent negative quantities
@@ -63,7 +72,22 @@ export default function CartRow({ item, prices }) {
                 <small>{item.fulfilled_by_product?.supplier.name}</small>
             </Table.Cell>
             <Table.Cell>
-                {item.price ? (item.price * item.quantity).toFixed(2) : <i>pending</i>}
+                {
+                    connectedVendors.length > 0
+                    ? (
+                        item.price ? (item.price * item.quantity).toFixed(2) : <i>pending</i>
+                    )
+                    : (<Link to='/account/vendors'>
+                            <Popup trigger={<Icon circular name='exclamation' />}>
+                                <Popup.Content>
+                                    This item is not available from any of your connected vendors 
+                                    and will be cancelled at checkout. 
+                                    To order, connect one of the following vendors: {allVendors.join(', ')} 
+                                </Popup.Content>
+                            </Popup>
+                            <i>Connect Vendors</i>
+                        </Link>)
+                }
             </Table.Cell>
             <Table.Cell>
                 <Icon className='delete-icon' name='trash alternate outline' onClick={deleteItem} />
