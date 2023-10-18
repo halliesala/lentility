@@ -9,9 +9,12 @@ from models import (db, User, Product, CanonicalProduct, Order,
                     Practice, OrderItem, SupplierAccount, Supplier, 
                     Address, PaymentMethod, VendorOrder)
 import models
-from datetime import datetime
+from datetime import datetime, timedelta
 from random import randint, choice, randrange
 import itertools
+import pprint
+
+pp = pprint.PrettyPrinter(indent=4)
 
 # ----- ENVIRONMENT VARIABLES ----- #
 load_dotenv()
@@ -468,7 +471,7 @@ def getOptimizedByPrice(user_id):
     # Get cart -- #89  is Thursday Test Practice's active cart
     cart = models.Order.query.filter_by(id=order_id).first()
 
-    # Get prices for all products in cart
+    # Get prices for all products in cart 
     fulfillment_options = {}
     for item in cart.order_items:
         fulfillment_options[item.id] = getAllProductPriceInfo(item.canonical_product_id, practice_id=practice_id)
@@ -493,7 +496,7 @@ def getOptimizedByPrice(user_id):
         subtotal = 0
         shipping = 0
         vendor_subtotals = {}
-        vendor_free_shipping_threshold = {}
+        vendor_free_shipping_thresholds = {}
         vendor_shipping_below_threshold = {}
         vendor_shipping = {}
         for product_id in fulfillment:
@@ -503,26 +506,17 @@ def getOptimizedByPrice(user_id):
             subtotal += price_info['price']
             vendor_subtotals[supplier.name] = vendor_subtotals.get(supplier.name, 0) + price_info['price']
             vendor_shipping_below_threshold[supplier.name] = price_info['shipping_cost']
-            vendor_free_shipping_threshold[supplier.name] = price_info['free_shipping_threshold']
+            vendor_free_shipping_thresholds[supplier.name] = price_info['free_shipping_threshold']
         for (vendor, subtotal) in vendor_subtotals.items():
             # calculate shipping cost
-            # TODO -- debug. 
-            # One of these is sometimes 'None', in which case we get an error
-            # When I wrap in 'try-except', we get illegal fulfillments (unconnected vendors)
-            # Ah, NO -- we're just showing 'Connect Vendor' where the vendor is already connected
-            # And we're incorrectly getting vendor_free_shipping_threshold. Why?
-            if subtotal < vendor_free_shipping_threshold[vendor]:
+            if subtotal < vendor_free_shipping_thresholds[vendor]:
                 vendor_shipping[vendor] = vendor_shipping_below_threshold[vendor]
                 shipping += vendor_shipping[vendor]
         total = subtotal + shipping
         fulfillment_prices.append((fulfillment, total, subtotal, shipping, vendor_subtotals, vendor_shipping_below_threshold))
-        fulfillment_prices_dict[fulfillment] = {'total': total, 'subtotal': subtotal, 'shipping': shipping, 'vendor_subtotals': vendor_subtotals, 'vendor_shipping_below_threshold': vendor_shipping_below_threshold}
+        fulfillment_prices_dict[fulfillment] = {'total': total, 'subtotal': subtotal, 'shipping': shipping, 'vendor_subtotals': vendor_subtotals, 'vendor_shipping_below_threshold': vendor_shipping_below_threshold, 'vendor_free_shipping_thresholds': vendor_free_shipping_thresholds}
     fulfillment_prices.sort(key=lambda x: x[1])
-    # for fp in fulfillment_prices:
-        # print(fp)
-        
-
-
+    
     # For now, 'best' fulfillment is the one with the lowest total price
     best_fulfillment = min(fulfillment_prices_dict, key=lambda x: fulfillment_prices_dict[x]['total'])
     print("Best fulfillment:", best_fulfillment)
@@ -532,8 +526,6 @@ def getOptimizedByPrice(user_id):
         product = models.Product.query.filter_by(id=product_id).first()
         order_item = models.OrderItem.query.filter_by(order_id=order_id, canonical_product_id=product.canonical_product_id).first()
         order_item_to_fulfilled_product_map[order_item.id] = product_id
-
-    # print(order_item_to_fulfilled_product_map, fulfillment_prices_dict[best_fulfillment]['total'])
 
     return {'order_item_to_fulfilled_product_map': order_item_to_fulfilled_product_map, 'info': fulfillment_prices_dict[best_fulfillment]}
 
@@ -626,11 +618,92 @@ class OptimizeCart(Resource):
                 pass
         db.session.commit()
         response = {'order_items': [oi.to_dict() for oi in order_items], 'best_fulfillment_info': best_fulfillment_info}, 200
-        print(response)
+        pp.pprint(response)
+
         return response
-
-
 api.add_resource(OptimizeCart, '/optimizecart')
+
+# curl -i -X POST -H "Content-Type: application/json" -d '{"shipping_address_id":1,"payment_method_id":1}' http://localhost:5555/api/v1/placeorder
+class PlaceOrder(Resource):
+    def post(self):
+        # Contains shipping_address_id, payment_method_id
+        data = request.json
+        # Get user -> practice -> cart
+        # Optimize cart
+        print("Route PLACEORDER ...")
+        # Return error if no user logged in or user doesn't belong to practice
+        # user = User.query.filter_by(id=session['user_id']).first()
+        user = User.query.filter_by(id=1).first()
+        if user is None:
+            response = {'message': 'No user logged in'}, 401
+            print("Response: ", response)
+            return response
+        practice = user.practice
+        if practice is None:
+            response = {'message': "User must belong to a practice"}, 401
+            print("Response: ", response)
+            return response
+        active_cart = Order.query.filter_by(practice_id=practice.id, status='in_cart').first()
+        order_items = OrderItem.query.filter_by(order_id=active_cart.id).all()
+        print("Optimizing price ... (this may take a while) ...")
+        best_fulfillment_info = getOptimizedByPrice(user.id)
+        print("Optimization complete.")
+        print("Best fulfillment info:", best_fulfillment_info)
+        for oi in order_items:
+            try:
+                fulfilled_by_product_id = best_fulfillment_info['order_item_to_fulfilled_product_map'][oi.id]
+                oi.fulfilled_by_product_id = fulfilled_by_product_id
+                oi.price = getPriceInfo(fulfilled_by_product_id, practice.id)['price']
+            except:
+                # No connected vendor can fulfill this item; it will need to be cancelled
+                oi.cancelled = True
+        db.session.commit()
+        # Patch Order shipping_address_id, payment_method_id, placed_by_user, placed_time, and status
+        print("Updating order ...")
+        active_cart.shipping_address_id = data['shipping_address_id']
+        active_cart.payment_method_id = data['payment_method_id']
+        active_cart.placed_by_user_id = user.id
+        active_cart.placed_time = datetime.now()
+        active_cart.status = 'placed'
+        db.session.commit()
+        
+        # Post VendorOrders
+        print("Creating vendor orders ...")
+        vendor_orders = []
+        vendor_subtotals = best_fulfillment_info['info']['vendor_subtotals']
+        vendor_ids = [oi.fulfilled_by_product.supplier_id for oi in order_items if oi.fulfilled_by_product]
+        print(vendor_ids)
+        vendor_ids = list(set(vendor_ids))
+        for vendor_id in vendor_ids:
+            vendor = Supplier.query.filter_by(id=vendor_id).first()
+            items = [oi for oi in order_items if not oi.cancelled and oi.fulfilled_by_product.supplier_id == vendor_id]
+            free_shipping_threshold = best_fulfillment_info['info']['vendor_free_shipping_thresholds'][vendor.name]
+            shipping_cost_below_threshold = best_fulfillment_info['info']['vendor_shipping_below_threshold'][vendor.name]
+            subtotal = best_fulfillment_info['info']['vendor_subtotals'][vendor.name]
+            shipping = shipping_cost_below_threshold if subtotal < free_shipping_threshold else 0
+            vendor_order = VendorOrder(
+                order_id = active_cart.id,
+                supplier_id = vendor_id,
+                shipping_and_handling = shipping,
+                tax = 0.07 * subtotal,
+                tracking_number = '1Z' + str(randint(1000000000, 9999999999)),
+                estimated_delivery_date = datetime.now() + timedelta(days=5),
+            )
+            db.session.add(vendor_order)
+            db.session.commit()
+            for item in items:
+                item.vendor_order_id = vendor_order.id
+            vendor_orders.append(vendor_order)
+        db.session.add_all(vendor_orders)
+        db.session.commit()
+        # Return success message
+        response = {'message': 'Order placed successfully', 
+                    'vendor_orders': [vo.to_dict() for vo in vendor_orders],
+                    'order': active_cart.to_dict(),
+                    'order_items': [oi.to_dict() for oi in order_items]}, 200
+        pp.pprint(response)
+        return response
+api.add_resource(PlaceOrder, '/placeorder')
 
 
 # ----- SUPPLIER ACCOUNTS AND CONNECT VENDOR ----- #

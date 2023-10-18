@@ -252,6 +252,7 @@ class OrderItem(db.Model, SerializerMixin):
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Float)
     vendor_order_id = db.Column(db.Integer, db.ForeignKey('vendor_orders.id'))
+    cancelled = db.Column(db.Boolean)
 
     # # Relationships #
     order = db.relationship('Order', back_populates='order_items')
@@ -263,6 +264,15 @@ class OrderItem(db.Model, SerializerMixin):
 
 class VendorOrder(db.Model, SerializerMixin):
     __tablename__ = 'vendor_orders'
+
+    serialize_only = ('id', 'order_id', 'supplier_id', 
+                      'shipping_and_handling', 'tax',
+                      'tracking_number', 'estimated_delivery_date',
+                      'order.practice_id', 'order.placed_by_user_id',
+                      'supplier.name', 'supplier.id',
+                      'order_items.id', 'order_items.fulfilled_by_product_id', 
+                      'order_items.fulfilled_by_product.name')
+    
 
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'))
