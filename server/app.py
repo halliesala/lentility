@@ -243,7 +243,22 @@ class OrdersByLoggedInPractice(Resource):
         return [o.to_dict() for o in orders if o.status != 'in_cart'], 200
 api.add_resource(OrdersByLoggedInPractice, '/ordersbyloggedinpractice')
 
-
+class UsersByLoggedInPractice(Resource):
+    def get(self):
+        print("Route USERSBYLOGGEDINPRACTICE ...")
+        print("Getting users ...")
+        if 'user_id' not in session:
+            response = {'message': 'No user logged in'}, 401
+            print("Response: ", response)
+            return response
+        user = User.query.filter_by(id=session['user_id']).first()
+        if user.practice_id is None:
+            response = {'message': "User must belong to a practice"}, 401
+            print("Response: ", response)
+            return response
+        users = User.query.filter_by(practice_id=user.practice_id).all()
+        return [u.to_dict() for u in users], 200
+api.add_resource(UsersByLoggedInPractice, '/usersbyloggedinpractice')
 class AddressesByLoggedInPractice(Resource):
     def get(self):
         print("Route ADDRESSESBYLOGGEDINPRACTICE ...")

@@ -84,3 +84,9 @@ export async function addressesLoader() {
     return { addresses }
 }
 
+export async function usersLoader() {
+    const response = await fetch('/api/v1/usersbyloggedinpractice')
+    const users = await response.json()
+    console.log("USERS LOADER: ", users)
+    return { users }
+}

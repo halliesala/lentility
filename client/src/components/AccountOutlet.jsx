@@ -14,6 +14,9 @@ export default function AccountOutlet() {
             <Menu.Item active={menuActive==='vendors'} link>
               <Link to='/account/vendors'>Vendors</Link>
             </Menu.Item>
+            <Menu.Item active={menuActive==='users'} >
+              <Link to='/account/users'>Users</Link>
+            </Menu.Item>
             <Menu.Item active={menuActive==='orders'} >
               <Link to='/account/orders'>Orders</Link>
             </Menu.Item>
