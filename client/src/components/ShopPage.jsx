@@ -71,6 +71,7 @@ export default function ShopPage() {
             <Grid columns={4}>
                 {
                     displayItems
+                        .sort((a,b) => a.manufacturer_sku.slice(3).localeCompare(b.manufacturer_sku.slice(3)))
                         .slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage)
                         .map(cp => {
                             return (
