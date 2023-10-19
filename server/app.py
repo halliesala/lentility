@@ -276,6 +276,7 @@ class AddressesByLoggedInPractice(Resource):
         return [a.to_dict() for a in addresses], 200
 api.add_resource(AddressesByLoggedInPractice, '/addressesbyloggedinpractice')
 
+
 # curl -i -X POST -H "Content-Type: application/json" -d '{"shipping_address_id": 2}' http://localhost:5555/api/v1/addshippingaddress
 class UpdatePrimaryShippingAddress(Resource):
     def post(self):
@@ -536,6 +537,7 @@ def getOptimizedByPrice(user_id):
     fulfillment_prices = []
     fulfillment_prices_dict = {}
     for fulfillment in all_fulfillments:
+        print("Fulfillment:", fulfillment)
         total = 0
         subtotal = 0
         shipping = 0
@@ -546,22 +548,28 @@ def getOptimizedByPrice(user_id):
         for product_id in fulfillment:
             product = models.Product.query.filter_by(id=product_id).first()
             supplier = product.supplier
+            print("Product, Supplier:", product, supplier)
             price_info = getPriceInfo(product_id, practice_id=practice_id)
+            print("Price info:", price_info)
             subtotal += price_info['price']
+            print("Subtotal:", subtotal)
             vendor_subtotals[supplier.name] = vendor_subtotals.get(supplier.name, 0) + price_info['price']
             vendor_shipping_below_threshold[supplier.name] = price_info['shipping_cost']
             vendor_free_shipping_thresholds[supplier.name] = price_info['free_shipping_threshold']
-        for (vendor, subtotal) in vendor_subtotals.items():
+        for (vendor, vendor_subtotal) in vendor_subtotals.items():
             # calculate shipping cost
-            if subtotal < vendor_free_shipping_thresholds[vendor]:
+            if vendor_subtotal < vendor_free_shipping_thresholds[vendor]:
                 vendor_shipping[vendor] = vendor_shipping_below_threshold[vendor]
                 shipping += vendor_shipping[vendor]
         total = subtotal + shipping
-        fulfillment_prices.append((fulfillment, total, subtotal, shipping, vendor_subtotals, vendor_shipping_below_threshold))
+        fulfillment_data = (fulfillment, total, subtotal, shipping, vendor_subtotals, vendor_shipping_below_threshold)
+        print("Fulfillment data:", fulfillment_data)
+        fulfillment_prices.append(fulfillment_data)
         fulfillment_prices_dict[fulfillment] = {'total': total, 'subtotal': subtotal, 'shipping': shipping, 'vendor_subtotals': vendor_subtotals, 'vendor_shipping_below_threshold': vendor_shipping_below_threshold, 'vendor_free_shipping_thresholds': vendor_free_shipping_thresholds}
     fulfillment_prices.sort(key=lambda x: x[1])
     
     # For now, 'best' fulfillment is the one with the lowest total price
+    print("Fulfillment_prices_dict:", fulfillment_prices_dict)
     best_fulfillment = min(fulfillment_prices_dict, key=lambda x: fulfillment_prices_dict[x]['total'])
     print("Best fulfillment:", best_fulfillment)
 

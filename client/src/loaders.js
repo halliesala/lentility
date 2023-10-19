@@ -90,3 +90,10 @@ export async function usersLoader() {
     console.log("USERS LOADER: ", users)
     return { users }
 }
+
+export async function paymentMethodsLoader() {
+    const response = await fetch('/api/v1/paymentmethodsbyloggedinpractice')
+    const paymentMethods = await response.json()
+    console.log("PAYMENT METHODS LOADER: ", paymentMethods)
+    return { paymentMethods }
+}

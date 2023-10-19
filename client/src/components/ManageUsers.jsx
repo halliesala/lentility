@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useOutletContext, useLoaderData } from "react-router-dom";
-import { Card, Checkbox, Table, Icon } from "semantic-ui-react";
+import { Table, Icon } from "semantic-ui-react";
 
 
 export default function PaymentMethods() {
