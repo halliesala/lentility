@@ -56,7 +56,7 @@ export default function CartRow({ item, prices }) {
         <Table.Row >
             <Table.Cell>
                 <p>{item.canonical_product.manufacturer.name} {item.canonical_product.name}</p>
-                <Image size='tiny' src='/red_lentils.jpg'/>
+                <Image size='tiny' src={item.canonical_product.image_link.split('/').slice(-2).join('/')}/>
                 {/* <p style={{ color: 'red' }}>order_item_id={item.id}</p> */}
                 {/* <p style={{ color: 'red' }}>canonical_product_id={item.canonical_product_id}</p> */}
                 <SupplierProductsTable order_item={item} prices={prices} />

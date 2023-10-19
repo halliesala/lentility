@@ -8,7 +8,7 @@ export default function CheckoutPage() {
     const [orderPlaced, setOrderPlaced] = useState(false)
     const [loading, setLoading] = useState(false)
     const [shippingAddressID, setShippingAddressID] = useState(addresses.find(a => a.is_primary_shipping).id)
-    const [paymentMethod, setPaymentMethod] = useState(paymentMethods.find(pm => pm.is_primary).id)
+    const [paymentMethodID, setPaymentMethodID] = useState(paymentMethods.find(pm => pm.is_primary).id)
 
     function handleSubmit(e) {
         e.preventDefault()
@@ -21,7 +21,7 @@ export default function CheckoutPage() {
             },
             'body': JSON.stringify({
                 'shipping_address_id': shippingAddressID,
-                'payment_method_id': paymentMethod.id
+                'payment_method_id': paymentMethodID
             })
         }
         fetch('/api/v1/placeorder', POST_OPTIONS)
@@ -72,8 +72,8 @@ export default function CheckoutPage() {
                 <Form.Field>
                     <label>Payment Method</label>
                     <select
-                        value={paymentMethod}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        value={paymentMethodID}
+                        onChange={(e) => setPaymentMethodID(e.target.value)}
                     >
                         {
                             paymentMethods.map(pm => {

@@ -47,7 +47,7 @@ function OrderCard({ order, vendorOrders, orderItemsByVO }) {
     const orderDate = (new Date(order.placed_time)).toLocaleDateString()
     return (
         <Card style={{ width: '80vw', textAlign: 'left', padding: '5%' }}>
-            <Card.Header>Order #{order.id} -- {order.status === 'delivered' ? 'Delivered' : 'In Progress'}</Card.Header>
+            <Card.Header as='h2'>Order #{order.id} -- {order.status === 'delivered' ? 'Delivered' : 'In Progress'}</Card.Header>
             <Card.Meta>Placed by {order.placed_by_user.first_name} {order.placed_by_user.last_name} on {orderDate}</Card.Meta>
             <Card.Content>
                 {
@@ -62,7 +62,7 @@ function OrderCard({ order, vendorOrders, orderItemsByVO }) {
                                                 <Card.Header>{oi.canonical_product.name}</Card.Header>
                                                 <Card.Meta>{oi.canonical_product.manufacturer.name}</Card.Meta>
                                                 <Card.Description>Quantity: {oi.quantity}</Card.Description>
-                                                <Card.Description>Price: ${oi.price}</Card.Description>
+                                                <Card.Description>Price: ${oi.price.toFixed(2)}</Card.Description>
                                             </Card.Content>
                                         )
                                     })

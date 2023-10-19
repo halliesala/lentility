@@ -10,7 +10,7 @@ export default function AccountOutlet() {
 
     return (
         <>
-          <Menu style={{width: '80vw'}}> 
+          <Menu pointing secondary style={{width: '80vw'}}> 
             <Menu.Item active={menuActive==='vendors'} link>
               <Link to='/account/vendors'>Vendors</Link>
             </Menu.Item>

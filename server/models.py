@@ -237,8 +237,10 @@ class OrderItem(db.Model, SerializerMixin):
 
     serialize_only = ('id', 'order_id', 'fulfilled_by_product_id', 
                       'created_time', 'canonical_product_id', 
+                      'cancelled',
                       'canonical_product.name', 
-                      'canonical_product.manufacturer.name', 
+                      'canonical_product.manufacturer.name',
+                      'canonical_product.image_link', 
                       'quantity', 'price', 'vendor_order_id', 
                       'fulfilled_by_product.id', 
                       'fulfilled_by_product.supplier.name', 

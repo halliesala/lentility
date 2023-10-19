@@ -17,9 +17,9 @@ export default function AddressesPage() {
         <>
             <h2>Manage Addresses</h2>
             {
-                addresses.map(address => {
+                addresses.map((address, idx) => {
                     return (
-                        <AddressCard key={address.id} address={address} primary={primary} setPrimary={setPrimary} />
+                        <AddressCard key={address.id} idx={idx} address={address} primary={primary} setPrimary={setPrimary} />
                     )
                 })
             }
@@ -28,7 +28,7 @@ export default function AddressesPage() {
 
 }
 
-function AddressCard({ address, primary, setPrimary }) {
+function AddressCard({ address, primary, setPrimary, idx }) {
 
     // const [checked, setChecked] = useState(address.id === primary)
 
@@ -54,11 +54,15 @@ function AddressCard({ address, primary, setPrimary }) {
 
     return (
         <Card style={{ width: '80vw', textAlign: 'left', padding: '5%' }}>
-            <p style={{color: 'red'}}>{address.id}</p>
+            {/* <p style={{color: 'red'}}>{address.id}</p> */}
+            {/* <p style={{color: 'grey'}}>{idx+1}</p> */}
+
             <Card.Content>
                 <Card.Description>{address.line_1}</Card.Description>
                 <Card.Description>{address.line_2}</Card.Description>
                 <Card.Description>{address.city}, {address.us_state} {address.zip}</Card.Description>
+            </Card.Content>
+            <Card.Content extra>
                 <Checkbox label="Primary Shipping Address" checked={address.id === primary} onChange={handleChange}/>
             </Card.Content>
         </Card>

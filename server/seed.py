@@ -8,6 +8,17 @@ from sqlalchemy import func
 fake = Faker()
 
 LENTIL_TYPES = ['Red Lentils', 'Green Lentils', 'Brown Lentils', 'Black Lentils', 'Pidgeon Peas', 'Chickpeas', 'Green Split Peas', 'Yellow Split Peas']
+PICTURES = {
+    'Red Lentils': '/client/public/images/red-lentils.jpg',
+    'Green Lentils': '/client/public/images/green-lentils.jpg',
+    'Brown Lentils': '/client/public/images/brown-lentils.jpg',
+    'Black Lentils': '/client/public/images/black-lentils.jpg',
+    'Pidgeon Peas': '/client/public/images/pidgeon-peas.jpg',
+    'Chickpeas': '/client/public/images/chickpeas.jpg',
+    'Green Split Peas': '/client/public/images/green-split-peas.jpg',
+    'Yellow Split Peas': '/client/public/images/yellow-split-peas.jpg',
+}
+
 QUANTITIES_LB = [1, 10, 100]
 MANUFACTURERS = ['Lentilmania', "Barb's Best Beans", "The Puy Tool", "lTero", "Planterson", "Hearty Soups International", "Lentsply Sproutona", "House Brand"]
 SUPPLIERS = ['Hearty Soups International', 'Planterson', 'Lentsply Sproutona', 'Lentil City', 'DC Lentil']
@@ -92,7 +103,7 @@ class SeedDB:
                         name = product_name(l, q, mfct),
                         description = description(l, q, mfct),
                         quantity = q,
-                        image_link = None,
+                        image_link = PICTURES[l],
                         price_preset = q  * len(l) * len(mfct) * 0.01,
                     )
                     # Not every manufacturer has every product
@@ -316,6 +327,7 @@ class SeedDB:
         practices = m.Practice.query.all()
         for p in practices:
             orders = m.Order.query.filter_by(practice_id=p.id).all()
+            orders = [o for o in orders if o.status !='in_cart']
             supplier_accounts = m.SupplierAccount.query.filter_by(practice_id=p.id).all()
             connected_suppliers = m.Supplier.query.filter(m.Supplier.id.in_([sa.supplier_id for sa in supplier_accounts])).all()
             for o in orders:

@@ -1,23 +1,27 @@
 import { useLoaderData, Link } from "react-router-dom";
 import { Table, Loader, Segment, Popup, Icon } from "semantic-ui-react";
 import CartRow from "./CartRow";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { XlviLoader } from "react-awesome-loaders";
+
+
+const XlviLoaderComponent = () => {
+  return (
+    <>
+      <XlviLoader
+        boxColors={["#646cff", "#610cf", "green"]}
+        desktopSize={"128px"}
+        mobileSize={"100px"}
+      />
+    </>
+  );
+};
+
 
 export default function CartPage() {
     const { order, order_items, prices } = useLoaderData()
     const [orderItems, setOrderItems] = useState(order_items)
     const [loading, setLoading] = useState(false)
-    const [fakeLoad, setFakeLoad] = useState(0)
-
-    // useEffect(() => {
-    //     setLoading(false)
-    //     const timer = setTimeout(() => {
-    //         setLoading(true);
-    //       }, 3000);
-
-    //       // Clear timer if the component is unmounted
-    //       return () => clearTimeout(timer);
-    // }, [fakeLoad])
     
     function onTimeIn() {
         console.log("Time in")
@@ -56,11 +60,18 @@ export default function CartPage() {
     }
     
     if (loading) {
-        return (
-            <Segment style={{height: '10vh'}}>
-                <Loader active={true}>Optimizing cart...</Loader>
-            </Segment>
+        // return (
+        //     <Segment style={{height: '10vh'}}>
+        //         <Loader active={true}>Optimizing cart...</Loader>
+        //     </Segment>
 
+        // )
+
+        return (
+            <>
+                <h2>Optimizing your cart ...</h2>
+                <XlviLoaderComponent />
+            </>
         )
     }
 

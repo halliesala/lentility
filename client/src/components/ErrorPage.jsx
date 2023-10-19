@@ -19,7 +19,7 @@ export default function ErrorPage() {
                 <Grid.Column width={6} >
                     <div>
                         {
-                            error
+                            error.status && error.statusText
                             ? <h2>{error.status}: {error.statusText}</h2>
                             : <h2>Oops!</h2>
                         }

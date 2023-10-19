@@ -33,22 +33,23 @@ export default function ProductCard({ cp, user }) {
     return (
         <Card key={cp.id} 
             color={colors[cp.manufacturer.id]}
-            style={{ width: '40vh'}}
+            // style={{ width: '40vh'}}
         >
-            <Image 
-                fluid
-                src='/red_lentils.jpg' 
+            <Image
+                src={cp.image_link.split('/').slice(-2).join('/')} 
                 label={{
                     color: colors[cp.manufacturer.id],
                     content: cp.manufacturer.name,
                     attached: 'top',
-                  }}>
+                }}>
             </Image>
-            <Card.Header as='h2'>{cp.name}</Card.Header>
+\            <Card.Header as='h2'>{cp.name}</Card.Header>
             <Card.Meta>{cp.manufacturer_sku}</Card.Meta>
             <div style={{height: '10vh'}}>
                 {
-                    cp.products.map(p => {
+                    cp.products
+                    .sort((a, b) => 0.5 - Math.random())
+                    .map(p => {
                         return (
                             <Card.Description key={p.id}>{p.supplier.name}</Card.Description>
                         )

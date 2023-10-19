@@ -672,7 +672,10 @@ class PlaceOrder(Resource):
             response = {'message': "User must belong to a practice"}, 401
             print("Response: ", response)
             return response
+        orders = Order.query.filter_by(practice_id=practice.id).all()
+        print("ORDERS: ", [(o.id, o.status) for o in orders])
         active_cart = Order.query.filter_by(practice_id=practice.id, status='in_cart').first()
+        print("ACTIVE CART: ", active_cart)
         order_items = OrderItem.query.filter_by(order_id=active_cart.id).all()
         print("Optimizing price ... (this may take a while) ...")
         best_fulfillment_info = getOptimizedByPrice(user.id)
